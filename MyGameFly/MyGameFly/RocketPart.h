@@ -10,5 +10,5 @@ public:
     RocketPart(sf::Vector2f relPos, sf::Color col);
     virtual ~RocketPart() = default;
 
-    virtual void draw(sf::RenderWindow& window, sf::Vector2f rocketPos, float rotation) = 0;
+    virtual void draw(sf::RenderWindow& window, sf::Vector2f rocketPos, float rotation, float scale = 1.0f) = 0;
 };

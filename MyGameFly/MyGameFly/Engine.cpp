@@ -13,8 +13,15 @@ Engine::Engine(sf::Vector2f relPos, float thrustPower, sf::Color col)
     shape.setOrigin({ 0, 0 });
 }
 
-void Engine::draw(sf::RenderWindow& window, sf::Vector2f rocketPos, float rotation)
+void Engine::draw(sf::RenderWindow& window, sf::Vector2f rocketPos, float rotation, float scale)
 {
+    // Scale the shape based on the zoom level
+    sf::ConvexShape scaledShape = shape;
+    for (size_t i = 0; i < scaledShape.getPointCount(); i++) {
+        sf::Vector2f point = shape.getPoint(i);
+        scaledShape.setPoint(i, point * scale);
+    }
+
     // Calculate actual position based on rocket position and rotation
     float radians = rotation * 3.14159f / 180.0f;
     float cosA = std::cos(radians);
@@ -26,9 +33,9 @@ void Engine::draw(sf::RenderWindow& window, sf::Vector2f rocketPos, float rotati
         relativePosition.x * sinA + relativePosition.y * cosA
     );
 
-    shape.setPosition(rocketPos + rotatedRelPos);
-    shape.setRotation(sf::degrees(rotation));
-    window.draw(shape);
+    scaledShape.setPosition(rocketPos + rotatedRelPos * scale);
+    scaledShape.setRotation(sf::degrees(rotation));
+    window.draw(scaledShape);
 }
 
 float Engine::getThrust() const

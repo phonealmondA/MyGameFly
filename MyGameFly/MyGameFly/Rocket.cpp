@@ -22,6 +22,7 @@ void Rocket::addPart(std::unique_ptr<RocketPart> part)
 {
     parts.push_back(std::move(part));
 }
+
 void Rocket::applyThrust(float amount)
 {
     // Calculate thrust direction based on rocket rotation
@@ -33,6 +34,7 @@ void Rocket::applyThrust(float amount)
 
     velocity += thrustDir * amount * thrustLevel;
 }
+
 void Rocket::rotate(float amount)
 {
     angularVelocity += amount;
@@ -58,8 +60,42 @@ bool Rocket::isColliding(const Planet& planet)
 
 void Rocket::update(float deltaTime)
 {
-    // Update position based on velocity
-    position += velocity * deltaTime;
+    bool resting = false;
+
+    // Check if we're resting on any planet
+    for (const auto& planet : nearbyPlanets) {
+        sf::Vector2f direction = position - planet->getPosition();
+        float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+        // If we're at or below the surface of the planet
+        if (distance <= (planet->getRadius() + 15.0f)) {
+            // Calculate normal force direction (away from planet center)
+            sf::Vector2f normal = normalize(direction);
+
+            // Project velocity onto normal to see if we're moving into the planet
+            float velDotNormal = velocity.x * normal.x + velocity.y * normal.y;
+
+            if (velDotNormal < 0) {
+                // Remove velocity component toward the planet
+                velocity -= normal * velDotNormal;
+
+                // Apply a small friction to velocity parallel to surface
+                sf::Vector2f tangent(-normal.y, normal.x);
+                float velDotTangent = velocity.x * tangent.x + velocity.y * tangent.y;
+                velocity = tangent * velDotTangent * 0.98f;
+
+                // Position correction to stay exactly on surface
+                position = planet->getPosition() + normal * (planet->getRadius() + 15.0f);
+
+                resting = true;
+            }
+        }
+    }
+
+    // Only apply normal updates if not resting on a planet
+    if (!resting) {
+        position += velocity * deltaTime;
+    }
 
     // Update rotation based on angular velocity
     rotation += angularVelocity * deltaTime;
@@ -80,6 +116,30 @@ void Rocket::draw(sf::RenderWindow& window)
     // Draw all rocket parts
     for (const auto& part : parts) {
         part->draw(window, position, rotation);
+    }
+}
+
+void Rocket::drawWithConstantSize(sf::RenderWindow& window, float zoomLevel)
+{
+    // Store original position and scale
+    sf::ConvexShape scaledBody = body;
+
+    // Scale the body based on zoom level to maintain visual size
+    float scaleMultiplier = zoomLevel;
+
+    // Apply the scaling to the body shape
+    // We're adjusting the points directly to keep the rocket centered properly
+    for (size_t i = 0; i < scaledBody.getPointCount(); i++) {
+        sf::Vector2f point = body.getPoint(i);
+        scaledBody.setPoint(i, point * scaleMultiplier);
+    }
+
+    // Draw the scaled body
+    window.draw(scaledBody);
+
+    // Draw rocket parts with appropriate scaling
+    for (const auto& part : parts) {
+        part->draw(window, position, rotation, scaleMultiplier);
     }
 }
 

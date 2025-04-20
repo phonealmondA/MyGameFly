@@ -13,6 +13,7 @@ private:
     float rotation;
     float angularVelocity;
     float thrustLevel; // Current thrust level (0.0 to 1.0)
+    std::vector<Planet*> nearbyPlanets;
 
     bool checkCollision(const Planet& planet);
 
@@ -24,11 +25,13 @@ public:
     void rotate(float amount);
     void setThrustLevel(float level); // Set thrust level between 0.0 and 1.0
     bool isColliding(const Planet& planet);
+    void setNearbyPlanets(const std::vector<Planet*>& planets) { nearbyPlanets = planets; }
 
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) override;
+    void drawWithConstantSize(sf::RenderWindow& window, float zoomLevel);
 
     // Draw velocity vector line
     void drawVelocityVector(sf::RenderWindow& window, float scale = 1.0f);
-    void drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>& planets,float timeStep = 0.1f, int steps = 100);
+    void drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>& planets, float timeStep = 0.1f, int steps = 100);
 };

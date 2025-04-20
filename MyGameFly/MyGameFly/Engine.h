@@ -9,6 +9,6 @@ private:
 public:
     Engine(sf::Vector2f relPos, float thrustPower, sf::Color col = sf::Color(255, 100, 0));
 
-    void draw(sf::RenderWindow& window, sf::Vector2f rocketPos, float rotation) override;
+    void draw(sf::RenderWindow& window, sf::Vector2f rocketPos, float rotation, float scale = 1.0f) override;
     float getThrust() const;
 };
