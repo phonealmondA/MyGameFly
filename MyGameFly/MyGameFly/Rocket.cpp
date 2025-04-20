@@ -2,8 +2,8 @@
 #include "VectorHelper.h"
 #include <cmath>
 
-Rocket::Rocket(sf::Vector2f pos, sf::Vector2f vel, sf::Color col)
-    : GameObject(pos, vel, col), rotation(0), angularVelocity(0), thrustLevel(0.0f)
+Rocket::Rocket(sf::Vector2f pos, sf::Vector2f vel, sf::Color col, float m)
+    : GameObject(pos, vel, col), rotation(0), angularVelocity(0), thrustLevel(0.0f), mass(m)
 {
     // Create rocket body (a simple triangle)
     body.setPointCount(3);
@@ -32,7 +32,8 @@ void Rocket::applyThrust(float amount)
     // So we need to use -sin for x and -cos for y to get the direction
     sf::Vector2f thrustDir(std::sin(radians), -std::cos(radians));
 
-    velocity += thrustDir * amount * thrustLevel;
+    // Apply force and convert to acceleration by dividing by mass (F=ma -> a=F/m)
+    velocity += thrustDir * amount * thrustLevel / mass;
 }
 
 void Rocket::rotate(float amount)
@@ -190,10 +191,11 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
                 break;
             }
 
-            // Apply constant gravity like in GravitySimulator
-            const float constantForce = 100.0f; // Same as in GravitySimulator
-            sf::Vector2f acceleration = normalize(direction) * constantForce;
+            // Apply inverse square law for gravity, same as in GravitySimulator
+            const float G = 6.67430e-11f * 1000000; // Same G as in GravitySimulator
+            float forceMagnitude = G * planet->getMass() * mass / (distance * distance);
 
+            sf::Vector2f acceleration = normalize(direction) * forceMagnitude / mass;
             totalAcceleration += acceleration;
         }
 

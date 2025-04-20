@@ -24,14 +24,15 @@ int main()
     float zoomLevel = 1.0f;
     float targetZoom = 1.0f;
     const float minZoom = 1.0f;      // Maximum zoom in (closest to planet)
-    const float maxZoom = 10.0f;     // Maximum zoom out
+    const float maxZoom = 100.0f;    // Maximum zoom out (increased to see larger planet)
     const float zoomSpeed = 2.0f;    // How quickly zoom changes
 
     // Clock for tracking time between frames
     sf::Clock clock;
 
-    // Create game objects
-    Planet planet(sf::Vector2f(400.f, 300.f), 50.f, 1000000.f, sf::Color::Blue);
+    // Create game objects - planet is now 600 times larger (30000 vs 50)
+    // Create game objects with a much smaller planet
+    Planet planet(sf::Vector2f(400.f, 300.f), 500.f, 100000000000.f, sf::Color::Blue);
 
     // Calculate position on the planet's edge - start at the top
     sf::Vector2f planetPos = planet.getPosition();
@@ -42,8 +43,8 @@ int main()
     sf::Vector2f direction(0, -1);
     sf::Vector2f rocketPos = planetPos + direction * (planetRadius + rocketSize);
 
-    // Create rocket at calculated position
-    Rocket rocket(rocketPos, sf::Vector2f(0.f, 0.f), sf::Color::White);
+    // Create rocket at calculated position with a mass of 1000 units
+    Rocket rocket(rocketPos, sf::Vector2f(0.f, 0.f), sf::Color::White, 1.0f);
 
     // Set up gravity simulator
     GravitySimulator gravitySimulator;
@@ -122,7 +123,7 @@ int main()
             rocket.getVelocity().y * rocket.getVelocity().y);
 
         // Determine target zoom level based on distance and velocity
-        targetZoom = minZoom + (distance - (planet.getRadius() + 15.0f)) / 100.0f + rocketSpeed / 50.0f;
+        targetZoom = minZoom + (distance - (planet.getRadius() + 15.0f)) / 1000.0f + rocketSpeed / 50.0f;
         targetZoom = std::max(minZoom, std::min(targetZoom, maxZoom));
 
         // Smoothly interpolate current zoom to target zoom

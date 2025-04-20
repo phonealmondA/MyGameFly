@@ -25,10 +25,12 @@ void GravitySimulator::update(float deltaTime)
 
             // Avoid division by zero and very small distances
             if (distance > planet->getRadius() + 10.0f) {
-                // Apply constant gravitational force instead of inverse square law
-                const float constantForce = 100.0f; // Adjust this value to change gravity strength
+                // Apply inverse square law for gravity
+                // F = G * (m1 * m2) / r^2
+                float forceMagnitude = G * planet->getMass() * rocket->getMass() / (distance * distance);
 
-                sf::Vector2f acceleration = normalize(direction) * constantForce;
+                // Apply Newton's 2nd law: a = F/m
+                sf::Vector2f acceleration = normalize(direction) * forceMagnitude / rocket->getMass();
 
                 // Modify rocket velocity based on gravitational acceleration
                 sf::Vector2f velocityChange = acceleration * deltaTime;
