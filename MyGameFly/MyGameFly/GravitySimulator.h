@@ -9,6 +9,7 @@ private:
     std::vector<Planet*> planets;
     std::vector<Rocket*> rockets;
     const float G = 100000.0f; // Simplified gravitational constant for game physics
+    bool simulatePlanetGravity = true; // Flag to control planet-to-planet gravity
 
 public:
     void addPlanet(Planet* planet);
@@ -18,4 +19,7 @@ public:
 
     // Method to get the planets list
     const std::vector<Planet*>& getPlanets() const { return planets; }
+
+    // Enable/disable gravity between planets
+    void setSimulatePlanetGravity(bool enable) { simulatePlanetGravity = enable; }
 };
