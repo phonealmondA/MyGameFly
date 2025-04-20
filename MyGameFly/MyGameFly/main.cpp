@@ -2,7 +2,10 @@
 #include "Planet.h"
 #include "Rocket.h"
 #include "GravitySimulator.h"
+#include "Button.h"
 #include <memory>
+#include <vector>
+#include <cstdint> // For uint8_t
 
 #ifdef _DEBUG
 #pragma comment(lib, "sfml-graphics-d.lib")
@@ -16,16 +19,55 @@
 
 int main()
 {
-    // Create a window with size 800x600
-    sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "Rocket Simulator");
+    // Create a window with increased size 1280x720
+    sf::RenderWindow window(sf::VideoMode({ 1280, 720 }), "Rocket Simulator");
 
     // Create a view for the camera with initial zoom level
-    sf::View gameView(sf::Vector2f(400.f, 300.f), sf::Vector2f(800.f, 600.f));
+    sf::View gameView(sf::Vector2f(640.f, 360.f), sf::Vector2f(1280.f, 720.f));
     float zoomLevel = 1.0f;
     float targetZoom = 1.0f;
     const float minZoom = 1.0f;      // Maximum zoom in (closest to planet)
     const float maxZoom = 1000.0f;   // Maximum zoom out (increased for larger system)
     const float zoomSpeed = 2.0f;    // How quickly zoom changes
+
+    // Load a font for the buttons
+    sf::Font font;
+    // Just skip font loading for now
+    // We'll render buttons without text initially
+
+    // Create UI view (fixed, doesn't zoom or move with game world)
+    sf::View uiView(sf::Vector2f(640.f, 360.f), sf::Vector2f(1280.f, 720.f));
+
+    // Create buttons
+    std::vector<Button> buttons;
+
+    // Zoom in button
+    buttons.emplace_back(
+        sf::Vector2f(20.f, 20.f), sf::Vector2f(80.f, 30.f),
+        "Zoom In", font,
+        [&]() {
+            targetZoom = std::max(minZoom, targetZoom / 1.5f);
+        }
+    );
+
+    // Zoom out button
+    buttons.emplace_back(
+        sf::Vector2f(20.f, 60.f), sf::Vector2f(80.f, 30.f),
+        "Zoom Out", font,
+        [&]() {
+            targetZoom = std::min(maxZoom, targetZoom * 1.5f);
+        }
+    );
+
+    // Reset view button
+    buttons.emplace_back(
+        sf::Vector2f(20.f, 100.f), sf::Vector2f(80.f, 30.f),
+        "Reset View", font,
+        [&]() {
+            targetZoom = 1.0f;
+            gameView.setCenter(sf::Vector2f(400.f, 300.f));
+        }
+    );
 
     // Clock for tracking time between frames
     sf::Clock clock;
@@ -78,6 +120,54 @@ int main()
             // Close the window when the close button is clicked
             if (event->is<sf::Event::Closed>())
                 window.close();
+
+            // Handle window resize events
+            if (event->is<sf::Event::Resized>())
+            {
+                const auto* resizeEvent = event->getIf<sf::Event::Resized>();
+                if (resizeEvent)
+                {
+                    // In SFML 3.0, we need to access the size property
+                    float aspectRatio = static_cast<float>(resizeEvent->size.x) / static_cast<float>(resizeEvent->size.y);
+                    gameView.setSize(sf::Vector2f(
+                        resizeEvent->size.y * aspectRatio * zoomLevel,
+                        resizeEvent->size.y * zoomLevel
+                    ));
+
+                    // Update UI view to match new window size
+                    uiView.setSize(sf::Vector2f(
+                        static_cast<float>(resizeEvent->size.x),
+                        static_cast<float>(resizeEvent->size.y)
+                    ));
+                    uiView.setCenter(sf::Vector2f(
+                        static_cast<float>(resizeEvent->size.x) / 2.0f,
+                        static_cast<float>(resizeEvent->size.y) / 2.0f
+                    ));
+
+                    window.setView(gameView);
+                }
+            }
+
+            // Handle mouse button press events for buttons
+            if (event->is<sf::Event::MouseButtonPressed>())
+            {
+                const auto* mouseEvent = event->getIf<sf::Event::MouseButtonPressed>();
+                if (mouseEvent && mouseEvent->button == sf::Mouse::Button::Left)
+                {
+                    // Get current mouse position
+                    sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
+                    sf::Vector2f mousePos = window.mapPixelToCoords(mousePosition, uiView);
+
+                    // Check each button
+                    for (auto& button : buttons)
+                    {
+                        if (button.contains(mousePos))
+                        {
+                            button.handleClick();
+                        }
+                    }
+                }
+            }
 
             // Handle key events
             if (event->is<sf::Event::KeyPressed>())
@@ -184,9 +274,9 @@ int main()
         zoomLevel += (targetZoom - zoomLevel) * deltaTime * zoomSpeed;
 
         // Set view size based on zoom level
-        gameView.setSize(sf::Vector2f(800.f * zoomLevel, 600.f * zoomLevel));
+        gameView.setSize(sf::Vector2f(1280.f * zoomLevel, 720.f * zoomLevel));
 
-        // Apply the view before drawing
+        // Apply the view before drawing game objects
         window.setView(gameView);
 
         // Clear window with black background
@@ -208,6 +298,17 @@ int main()
         planet.drawVelocityVector(window, 5.0f);
         planet2.drawVelocityVector(window, 5.0f);
         rocket.drawVelocityVector(window, 2.0f);
+
+        // Switch to UI view for buttons
+        window.setView(uiView);
+
+        // Update and draw buttons
+        sf::Vector2f mousePos = window.mapPixelToCoords(
+            sf::Mouse::getPosition(window), uiView);
+        for (auto& button : buttons) {
+            button.update(mousePos);
+            button.draw(window);
+        }
 
         // Display what was drawn
         window.display();
