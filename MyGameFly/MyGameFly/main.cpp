@@ -24,7 +24,10 @@ int main()
 
     // Create game objects
     Planet planet(sf::Vector2f(400.f, 300.f), 50.f, 1000000.f, sf::Color::Blue);
-    Rocket rocket(sf::Vector2f(200.f, 300.f), sf::Vector2f(50.f, 0.f), sf::Color::White);
+    // Position rocket at top of planet
+    Rocket rocket(sf::Vector2f(planet.getPosition().x,
+        planet.getPosition().y - planet.getRadius() - 30.f),
+        sf::Vector2f(0.f, 0.f), sf::Color::White);
 
     // Set up gravity simulator
     GravitySimulator gravitySimulator;
@@ -34,7 +37,7 @@ int main()
     // Main game loop
     while (window.isOpen())
     {
-        // Calculate delta time (limit to avoid physics issues if game freezes temporarily)
+        // Calculate delta time
         float deltaTime = std::min(clock.restart().asSeconds(), 0.1f);
 
         // Check for events
@@ -52,24 +55,58 @@ int main()
                 {
                     if (keyEvent->code == sf::Keyboard::Key::Escape)
                         window.close();
-                    else if (keyEvent->code == sf::Keyboard::Key::Up)
-                        rocket.applyThrust(10.0f);
-                    else if (keyEvent->code == sf::Keyboard::Key::Left)
-                        rocket.rotate(-5.0f);
-                    else if (keyEvent->code == sf::Keyboard::Key::Right)
-                        rocket.rotate(5.0f);
                 }
             }
         }
 
-        // Handle continuous key presses
+        // Handle continuous key presses for thrust level
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1))
+            rocket.setThrustLevel(0.1f);
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2))
+            rocket.setThrustLevel(0.2f);
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num3))
+            rocket.setThrustLevel(0.3f);
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num4))
+            rocket.setThrustLevel(0.4f);
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num5))
+            rocket.setThrustLevel(0.5f);
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num6))
+            rocket.setThrustLevel(0.6f);
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num7))
+            rocket.setThrustLevel(0.7f);
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num8))
+            rocket.setThrustLevel(0.8f);
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num9))
+            rocket.setThrustLevel(0.9f);
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num0))
+            rocket.setThrustLevel(0.0f);
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Equal)) // = key
+            rocket.setThrustLevel(1.0f);
+
+        // Apply thrust and rotation
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
             rocket.applyThrust(1.0f);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+            rocket.rotate(-2.0f * deltaTime * 60.0f);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+            rocket.rotate(2.0f * deltaTime * 60.0f);
 
         // Update simulation
         gravitySimulator.update(deltaTime);
         planet.update(deltaTime);
         rocket.update(deltaTime);
+
+        // Check for collision
+        if (rocket.isColliding(planet)) {
+            // Reset rocket position to top of planet
+            rocket = Rocket(sf::Vector2f(planet.getPosition().x,
+                planet.getPosition().y - planet.getRadius() - 30.f),
+                sf::Vector2f(0.f, 0.f));
+
+            // Clear old rocket and add new one to gravity simulator
+            gravitySimulator.clearRockets();
+            gravitySimulator.addRocket(&rocket);
+        }
 
         // Clear window with black background
         window.clear(sf::Color::Black);

@@ -2,6 +2,7 @@
 #include "GameObject.h"
 #include "RocketPart.h"
 #include "Engine.h"
+#include "Planet.h"
 #include <vector>
 #include <memory>
 
@@ -11,6 +12,9 @@ private:
     std::vector<std::unique_ptr<RocketPart>> parts;
     float rotation;
     float angularVelocity;
+    float thrustLevel; // Current thrust level (0.0 to 1.0)
+
+    bool checkCollision(const Planet& planet);
 
 public:
     Rocket(sf::Vector2f pos, sf::Vector2f vel, sf::Color col = sf::Color::White);
@@ -18,6 +22,8 @@ public:
     void addPart(std::unique_ptr<RocketPart> part);
     void applyThrust(float amount);
     void rotate(float amount);
+    void setThrustLevel(float level); // Set thrust level between 0.0 and 1.0
+    bool isColliding(const Planet& planet);
 
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) override;

@@ -1,8 +1,9 @@
 #include "Rocket.h"
+#include "VectorHelper.h"
 #include <cmath>
 
 Rocket::Rocket(sf::Vector2f pos, sf::Vector2f vel, sf::Color col)
-    : GameObject(pos, vel, col), rotation(0), angularVelocity(0)
+    : GameObject(pos, vel, col), rotation(0), angularVelocity(0), thrustLevel(0.0f)
 {
     // Create rocket body (a simple triangle)
     body.setPointCount(3);
@@ -21,18 +22,38 @@ void Rocket::addPart(std::unique_ptr<RocketPart> part)
 {
     parts.push_back(std::move(part));
 }
-
 void Rocket::applyThrust(float amount)
 {
     // Calculate thrust direction based on rocket rotation
     float radians = rotation * 3.14159f / 180.0f;
-    sf::Vector2f thrustDir(-std::sin(radians), -std::cos(radians));
-    velocity += thrustDir * amount;
-}
 
+    // In SFML, 0 degrees points up, 90 degrees points right
+    // So we need to use -sin for x and -cos for y to get the direction
+    sf::Vector2f thrustDir(std::sin(radians), -std::cos(radians));
+
+    velocity += thrustDir * amount * thrustLevel;
+}
 void Rocket::rotate(float amount)
 {
     angularVelocity += amount;
+}
+
+void Rocket::setThrustLevel(float level)
+{
+    // Clamp level between 0.0 and 1.0
+    thrustLevel = std::max(0.0f, std::min(1.0f, level));
+}
+
+bool Rocket::checkCollision(const Planet& planet)
+{
+    float dist = distance(position, planet.getPosition());
+    // Simple collision check based on distance
+    return dist < planet.getRadius() + 15.0f; // 15 = approximate rocket size
+}
+
+bool Rocket::isColliding(const Planet& planet)
+{
+    return checkCollision(planet);
 }
 
 void Rocket::update(float deltaTime)

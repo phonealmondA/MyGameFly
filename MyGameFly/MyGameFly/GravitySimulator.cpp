@@ -10,6 +10,11 @@ void GravitySimulator::addRocket(Rocket* rocket)
     rockets.push_back(rocket);
 }
 
+void GravitySimulator::clearRockets()
+{
+    rockets.clear();
+}
+
 void GravitySimulator::update(float deltaTime)
 {
     // Apply gravity from planets to rockets

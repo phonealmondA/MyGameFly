@@ -14,4 +14,5 @@ public:
     void addPlanet(Planet* planet);
     void addRocket(Rocket* rocket);
     void update(float deltaTime);
+    void clearRockets(); // New method to clear rockets list
 };
