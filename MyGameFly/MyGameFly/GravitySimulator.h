@@ -8,7 +8,7 @@ class GravitySimulator {
 private:
     std::vector<Planet*> planets;
     std::vector<Rocket*> rockets;
-    const float G = 6.67430e-11f * 1000000; // Gravitational constant (scaled for game)
+    const float G = 100000.0f; // Simplified gravitational constant for game physics
 
 public:
     void addPlanet(Planet* planet);

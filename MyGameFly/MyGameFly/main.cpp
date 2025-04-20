@@ -32,7 +32,7 @@ int main()
 
     // Create game objects - planet is now 600 times larger (30000 vs 50)
     // Create game objects with a much smaller planet
-    Planet planet(sf::Vector2f(400.f, 300.f), 500.f, 100000000000.f, sf::Color::Blue);
+    Planet planet(sf::Vector2f(400.f, 300.f), 500.f, 1000.f, sf::Color::Blue);
 
     // Calculate position on the planet's edge - start at the top
     sf::Vector2f planetPos = planet.getPosition();
@@ -123,7 +123,7 @@ int main()
             rocket.getVelocity().y * rocket.getVelocity().y);
 
         // Determine target zoom level based on distance and velocity
-        targetZoom = minZoom + (distance - (planet.getRadius() + 15.0f)) / 1000.0f + rocketSpeed / 50.0f;
+        targetZoom = minZoom + (distance - (planet.getRadius() + 15.0f)) / 100.0f;
         targetZoom = std::max(minZoom, std::min(targetZoom, maxZoom));
 
         // Smoothly interpolate current zoom to target zoom

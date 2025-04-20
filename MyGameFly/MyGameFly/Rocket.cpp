@@ -160,7 +160,6 @@ void Rocket::drawVelocityVector(sf::RenderWindow& window, float scale)
 
     window.draw(line);
 }
-
 void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>& planets,
     float timeStep, int steps) {
     // Create a vertex array for the trajectory line
@@ -191,8 +190,8 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
                 break;
             }
 
-            // Apply inverse square law for gravity, same as in GravitySimulator
-            const float G = 6.67430e-11f * 1000000; // Same G as in GravitySimulator
+            // IMPORTANT: Use the same gravitational constant as in GravitySimulator
+            const float G = 100000.0f; // Make sure this matches your GravitySimulator.h value
             float forceMagnitude = G * planet->getMass() * mass / (distance * distance);
 
             sf::Vector2f acceleration = normalize(direction) * forceMagnitude / mass;
