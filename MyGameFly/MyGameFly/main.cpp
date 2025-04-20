@@ -1,9 +1,10 @@
-#include "D:/MyGameFly/SFML-3.0.0-windows-vc17-64-bit/SFML-3.0.0/include/SFML/Graphics.hpp"
+#include <SFML/Graphics.hpp>
 #include "Planet.h"
 #include "Rocket.h"
 #include "GravitySimulator.h"
 #include <memory>
 
+// Rest of the code remains the same
 #ifdef _DEBUG
 #pragma comment(lib, "sfml-graphics-d.lib")
 #pragma comment(lib, "sfml-window-d.lib")

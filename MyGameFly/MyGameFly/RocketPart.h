@@ -1,5 +1,6 @@
 #pragma once
-#include "D:/MyGameFly/SFML-3.0.0-windows-vc17-64-bit/SFML-3.0.0/include/SFML/Graphics.hpp"
+#include <SFML/Graphics.hpp>
+
 
 class RocketPart {
 protected:

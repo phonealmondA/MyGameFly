@@ -1,6 +1,8 @@
 #pragma once
-#include "D:/MyGameFly/SFML-3.0.0-windows-vc17-64-bit/SFML-3.0.0/include/SFML/System/Vector2.hpp"
+#include <SFML/System/Vector2.hpp>
 #include <cmath>
+
+// Rest of the code remains the same
 
 // Vector2 helper functions
 inline sf::Vector2f normalize(const sf::Vector2f& source) {
