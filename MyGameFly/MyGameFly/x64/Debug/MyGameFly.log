@@ -1,0 +1,58 @@
+﻿  main.cpp
+D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,47): warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'sf::Exception'
+  (compiling source file 'main.cpp')
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\include\stdexcept(100,19):
+      see declaration of 'std::runtime_error'
+      D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,23):
+      see declaration of 'sf::Exception'
+  
+  Planet.cpp
+D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,47): warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'sf::Exception'
+  (compiling source file 'Planet.cpp')
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\include\stdexcept(100,19):
+      see declaration of 'std::runtime_error'
+      D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,23):
+      see declaration of 'sf::Exception'
+  
+  GameObject.cpp
+D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,47): warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'sf::Exception'
+  (compiling source file 'GameObject.cpp')
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\include\stdexcept(100,19):
+      see declaration of 'std::runtime_error'
+      D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,23):
+      see declaration of 'sf::Exception'
+  
+  RocketPart.cpp
+D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,47): warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'sf::Exception'
+  (compiling source file 'RocketPart.cpp')
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\include\stdexcept(100,19):
+      see declaration of 'std::runtime_error'
+      D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,23):
+      see declaration of 'sf::Exception'
+  
+  Engine.cpp
+D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,47): warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'sf::Exception'
+  (compiling source file 'Engine.cpp')
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\include\stdexcept(100,19):
+      see declaration of 'std::runtime_error'
+      D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,23):
+      see declaration of 'sf::Exception'
+  
+  Rocket.cpp
+D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,47): warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'sf::Exception'
+  (compiling source file 'Rocket.cpp')
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\include\stdexcept(100,19):
+      see declaration of 'std::runtime_error'
+      D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,23):
+      see declaration of 'sf::Exception'
+  
+  GravitySimulator.cpp
+D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,47): warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'sf::Exception'
+  (compiling source file 'GravitySimulator.cpp')
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\include\stdexcept(100,19):
+      see declaration of 'std::runtime_error'
+      D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include\SFML\System\Exception.hpp(41,23):
+      see declaration of 'sf::Exception'
+  
+  Generating Code...
+  MyGameFly.vcxproj -> D:\MyGameFly\MyGameFly\x64\Debug\MyGameFly.exe

@@ -1,0 +1,27 @@
+#pragma once
+#include "GameObject.h"
+#include "RocketPart.h"
+#include "Engine.h"
+#include <vector>
+#include <memory>
+
+class Rocket : public GameObject {
+private:
+    sf::ConvexShape body;
+    std::vector<std::unique_ptr<RocketPart>> parts;
+    float rotation;
+    float angularVelocity;
+
+public:
+    Rocket(sf::Vector2f pos, sf::Vector2f vel, sf::Color col = sf::Color::White);
+
+    void addPart(std::unique_ptr<RocketPart> part);
+    void applyThrust(float amount);
+    void rotate(float amount);
+
+    void update(float deltaTime) override;
+    void draw(sf::RenderWindow& window) override;
+
+    // Draw velocity vector line
+    void drawVelocityVector(sf::RenderWindow& window, float scale = 1.0f);
+};

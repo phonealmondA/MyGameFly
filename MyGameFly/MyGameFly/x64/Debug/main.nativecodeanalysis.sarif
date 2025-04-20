@@ -1,0 +1,659 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.42.34435.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/mygamefly/mygamefly/main.cpp"
+          },
+          "roles": [
+            "analysisTarget"
+          ],
+          "hashes": {
+            "sha-256": "436ca62d969790964567f5e27131be9cc7ed4efd569b89221dda0fe22f5eef2c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics.hpp"
+          },
+          "hashes": {
+            "sha-256": "1f7545fb966db8c8167ed809a9827328d6c1ade115c67444ce95c5a1cde35eaf"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/blendmode.hpp"
+          },
+          "hashes": {
+            "sha-256": "b98dbfa5a83919429b5df182c8930e946858bbfe7673b57a50f0fc2937f821a5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/export.hpp"
+          },
+          "hashes": {
+            "sha-256": "0ea528782e5eb640eb3bf436daf9ffe500ab200b566a7bfb3a01bdec3f108849"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/config.hpp"
+          },
+          "hashes": {
+            "sha-256": "0cd00b5d564cd50e8401818a2c285c8aee2191e481ca552c7b6604d5bcd5f7e8"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/circleshape.hpp"
+          },
+          "hashes": {
+            "sha-256": "5d938eaf252401fd8e4fa2ae35aaf8ff511271cac661497fecc258da18d2aa3e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/shape.hpp"
+          },
+          "hashes": {
+            "sha-256": "dbb21d3d764c2037343eaac1a654f0d0a56f21de392dd6876d5450575ee0448c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/color.hpp"
+          },
+          "hashes": {
+            "sha-256": "01fa0a264b6bf573ef9f45e15cd5165083724e855b24c8d772405b405bc7eef0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/color.inl"
+          },
+          "hashes": {
+            "sha-256": "4eb43e0db77f4def5d779964f55fedcf8c23c439fea59da0c1b96842d5201948"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/drawable.hpp"
+          },
+          "hashes": {
+            "sha-256": "97745ed1ceb2da258e6d629c9e705f48fa26863d8632455de452350a57f75aff"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/primitivetype.hpp"
+          },
+          "hashes": {
+            "sha-256": "cda1f6475263f410ffd41e5871ca6c54e1abe3f4225b08de51e79212e69534dc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/rect.hpp"
+          },
+          "hashes": {
+            "sha-256": "8610d887e8eb39df4cc81719bb593ecdc71abdf665618157baaa3b42fafab114"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/vector2.hpp"
+          },
+          "hashes": {
+            "sha-256": "7ccd0a1044af188d7ef1de2c3499779d5f2ce82a9ab196b321e84b51e7a7a414"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/export.hpp"
+          },
+          "hashes": {
+            "sha-256": "b923fc0fa0ad52d318032b5b818a9a67741d0eef18dc3cef60c06c20efba3d50"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/angle.hpp"
+          },
+          "hashes": {
+            "sha-256": "b4ed0fc4603978b704bd71eef3b09a15e285d7c9189c8352cb378d643f003c8f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/angle.inl"
+          },
+          "hashes": {
+            "sha-256": "5f64e331d01710dd2ab67a4af2beb540066d7628336fd60ff438c0b9e8d0f316"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/vector2.inl"
+          },
+          "hashes": {
+            "sha-256": "9a254cd973e6789b6bc630fea7a6b56d0321ae2a499626af90e0b190d4026723"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/rect.inl"
+          },
+          "hashes": {
+            "sha-256": "da49e300b798a4065e9270f9326f291d633395e7081402118af35418ea0ec8db"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/renderstates.hpp"
+          },
+          "hashes": {
+            "sha-256": "74375ce927d2de1f6fc02db26b76f939ef8194e5e4d373355e1ffe7dbee61954"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/coordinatetype.hpp"
+          },
+          "hashes": {
+            "sha-256": "534bfd57b863696e397a511f01fded4cb3fc4f1050f491f014cdc2552e684f8b"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/stencilmode.hpp"
+          },
+          "hashes": {
+            "sha-256": "0a423081db83b8b36bffdd51eceacf760c218580dab37cf912e52a8d69d2693c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/transform.hpp"
+          },
+          "hashes": {
+            "sha-256": "72f752e52d31aadf73f80f7b514c12875a4b14b7f7b8805d2177a76396e3b9b3"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/transform.inl"
+          },
+          "hashes": {
+            "sha-256": "c87edee4d7ddf52439a9ed4d9ad1ea9103f56806969f96bb7648fb54045467b2"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/transformable.hpp"
+          },
+          "hashes": {
+            "sha-256": "414350b98bcec7a0626af4908e81a007564f1479adfa8fb29bebce950174fd61"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/vertexarray.hpp"
+          },
+          "hashes": {
+            "sha-256": "93fd679253b9cced9b83866f419dc3905f0b8915961d92cadc6a36e0bd9025eb"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/vertex.hpp"
+          },
+          "hashes": {
+            "sha-256": "99d4e3083e4fe08dbba268219f98a417e79dbd2e4f1b3a6467fa8f042e7d1989"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/convexshape.hpp"
+          },
+          "hashes": {
+            "sha-256": "42e98024e5d1dbe65df1d9c557be5e6eeba7e839f5dce7b08503d28314615d03"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/font.hpp"
+          },
+          "hashes": {
+            "sha-256": "f708f7099545aa6f03485efa7099543f4c56f5f91060a445c7ef60b0c068efb1"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/glyph.hpp"
+          },
+          "hashes": {
+            "sha-256": "fcd6067ba07a91dd6ff34361406f51fa6e2683e2435ef6af9a04faa03f6456ce"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/texture.hpp"
+          },
+          "hashes": {
+            "sha-256": "464b733245560e84820a602d2b88d737f2b068d798c3a7f0dd8e8ec8db8ce90e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/glresource.hpp"
+          },
+          "hashes": {
+            "sha-256": "9fce08f79224ce83457155092073f3f05e3e560f7f141ebc4bd5933bcd0b2e62"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/export.hpp"
+          },
+          "hashes": {
+            "sha-256": "8114041ff226d99c6f677fb96843a33820d82d1cb80eb96c4d36584183755d84"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/image.hpp"
+          },
+          "hashes": {
+            "sha-256": "dfd37f02a650ec3be31307b4f6f74e004b04bf2649961e279982ba55b4cefc04"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/rectangleshape.hpp"
+          },
+          "hashes": {
+            "sha-256": "7557a9823e73ac89a907a29e93e5788e236f0c22cccd93e16c9a5652561d68eb"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/rendertarget.hpp"
+          },
+          "hashes": {
+            "sha-256": "6343e5f827f21246855453682f2c000a0812796e7581bda37d74f5f430de7dd5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/view.hpp"
+          },
+          "hashes": {
+            "sha-256": "573895c1fc29d3ee0a0b116c7da4e7f0e3507a0ee7fb0a1535c3963a75f533a4"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/rendertexture.hpp"
+          },
+          "hashes": {
+            "sha-256": "6cde9672be441703351eb93b870e0031757dc534c694f03aca4cc46767901a68"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/contextsettings.hpp"
+          },
+          "hashes": {
+            "sha-256": "a38e447fa6edf7be5e0cc7c8f5c62284aaa27bc988394f1cf411c889547c60fb"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/renderwindow.hpp"
+          },
+          "hashes": {
+            "sha-256": "3480c540f02ea58e61f2eb95d694261e2f7580aa5c9c49255b143b001a74e6a9"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/videomode.hpp"
+          },
+          "hashes": {
+            "sha-256": "3930cbde56aed31f676ed20414cd259527661f832025d8c67d982d90044baae1"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/window.hpp"
+          },
+          "hashes": {
+            "sha-256": "67132db5fb8a678c678e98e9a6272db3e6018f38f474ecb092f5decbe215cbd5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/windowbase.hpp"
+          },
+          "hashes": {
+            "sha-256": "57172a9c2c71975630aaa1ad5778fae8619d247f3a3ff8fe5922a636549f964a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/vulkan.hpp"
+          },
+          "hashes": {
+            "sha-256": "a5ff725b431637c4035a4993d33e505ee3243922c3ea05a5261889999fe90d29"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/windowenums.hpp"
+          },
+          "hashes": {
+            "sha-256": "78a8ed01ed3ea3d945055040195767dbec9ef45f843af1f8d0d01b56c87926af"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/windowhandle.hpp"
+          },
+          "hashes": {
+            "sha-256": "b32a181d0331f7a42a445c374112a09fd7f99bf3fba0527ca6c957eb4891ec35"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/time.hpp"
+          },
+          "hashes": {
+            "sha-256": "ceae813cd4b54e325468e749b4094a2ac1689f9bec19385fbacec6d326d54654"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/time.inl"
+          },
+          "hashes": {
+            "sha-256": "a5df01e9c5a024eb16bee5021864ab7b3ad932b9fa84004e1994437950fd3906"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/windowbase.inl"
+          },
+          "hashes": {
+            "sha-256": "cd789fac0f10a6e52f31aee123007bbf456e069db163d39b49e3f7f7942f320d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/event.hpp"
+          },
+          "hashes": {
+            "sha-256": "843a3ae99070776c3d06b0f7ec32dab6e2ea941de4e2ea9c5c6abb1a3316f209"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/joystick.hpp"
+          },
+          "hashes": {
+            "sha-256": "32fa7da38ca0a37803f28eafc9849e755a62db7021aba70b4c4e72c4e446d873"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/string.hpp"
+          },
+          "hashes": {
+            "sha-256": "e9a6d28d7ed886a8a77f5dde8bb1b34602caff3fde3cd754537e61c83069c526"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/utf.hpp"
+          },
+          "hashes": {
+            "sha-256": "974692ac15e2f04a93c52fdcaea61c448deb1659bade9592ceeeac3e9adf7eb5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/utf.inl"
+          },
+          "hashes": {
+            "sha-256": "9560d44bd0f62f5999578eeef0cd36653c166d1f2f898abcb8731d41de71897c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/string.inl"
+          },
+          "hashes": {
+            "sha-256": "13790674da657b0fddf21502f8bd1a5fe94f6e62d208f3606efa8c3bdf68d776"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/keyboard.hpp"
+          },
+          "hashes": {
+            "sha-256": "54029d951d78f86055d06e746076a372ee7466cdbb48e84066699042d684ca84"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/mouse.hpp"
+          },
+          "hashes": {
+            "sha-256": "f6c14f0900c4d92832433c3d7a4f7521beaaad5f7b8693f277242b236ecdccbc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/sensor.hpp"
+          },
+          "hashes": {
+            "sha-256": "a554870fd75521b711ba9b3fd296094fd3889e48fe9ff009208a42c3e3307c63"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/vector3.hpp"
+          },
+          "hashes": {
+            "sha-256": "09bb684faf973e9ef1607ce316253120c74244fa392f14b8aef41d6f3ba18926"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/vector3.inl"
+          },
+          "hashes": {
+            "sha-256": "d6386e43820d8aab9b2a7740b4a9aa64c3234c4d06bf5943aa4a88815216d0cc"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/event.inl"
+          },
+          "hashes": {
+            "sha-256": "ec27449ac8ecb8708e4a9d9423aec1f2caaba3e1cecc0dc4d1cb1a7cef1a6f5b"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/clock.hpp"
+          },
+          "hashes": {
+            "sha-256": "fc647a69877e319d89a149d91f1913b1b3ffb290dab2d9f2e8336d7621c1df78"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/shader.hpp"
+          },
+          "hashes": {
+            "sha-256": "d5129331f4c623662672c95ecb888fe640f445982821b40a39b29efb8ff5005d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/glsl.hpp"
+          },
+          "hashes": {
+            "sha-256": "330ac0843d8d1e24bece3a7b70f168e3968fd7fef9725ff1622acbf42b97e541"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/glsl.inl"
+          },
+          "hashes": {
+            "sha-256": "4a50ef52a159153640a25afec2d202a716d24fef4fb25cf5a2dd33d43688ff01"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/sprite.hpp"
+          },
+          "hashes": {
+            "sha-256": "9b7e7b1f651f21fe6cf5a83c1bc3fd3c652d9338738619dd280c37b1ff55e189"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/text.hpp"
+          },
+          "hashes": {
+            "sha-256": "553e5a4c0f55294b887255e61338d28fb334a12e477a98e00d0597c7d723e1ae"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/graphics/vertexbuffer.hpp"
+          },
+          "hashes": {
+            "sha-256": "92ba6276b30bffbe974c3ee90d9bba9745838f489bbf4500ae8811eaec7bf1be"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window.hpp"
+          },
+          "hashes": {
+            "sha-256": "d0d61c187da4ce77c3f0fcc8da561bc078921e4c78706a1cb2085c32db6665bd"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/clipboard.hpp"
+          },
+          "hashes": {
+            "sha-256": "46ed996de3e17f2e4a763fd14534fb35b4e552f902f49454dbf7450567e56146"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/context.hpp"
+          },
+          "hashes": {
+            "sha-256": "75d385fbe2127878291f0206e2109940182e89df84dcc9507267a3651a7ed7a0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/cursor.hpp"
+          },
+          "hashes": {
+            "sha-256": "d1558883dd446f36748146aafe42f16b20ba63fce117348d72996d918505ce66"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/window/touch.hpp"
+          },
+          "hashes": {
+            "sha-256": "d58a41f01b07dbb9164f405f8bee5da7184efed2d19f1a893d7a8cfc53122625"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system.hpp"
+          },
+          "hashes": {
+            "sha-256": "ddd3f7091ca8c8a44e920c08e0575c2d57574063e84d681418679b93044781b0"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/err.hpp"
+          },
+          "hashes": {
+            "sha-256": "9f08e25cc18bf05c2e7f6ec7f4941d04c78fb9621ff2915d4624e7134c186da3"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/exception.hpp"
+          },
+          "hashes": {
+            "sha-256": "7b11e8cf548e84f028d8b93bff9c591a7a7dd51c51d762b8b475b3584200ff8c"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/fileinputstream.hpp"
+          },
+          "hashes": {
+            "sha-256": "e7c51e6fe1af41661b505c7f5d9effc346735d19d4543538d664cf13d74a0b6b"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/inputstream.hpp"
+          },
+          "hashes": {
+            "sha-256": "f8f61fa20f7084c8ee9d2b81e4609c4f1603a3803f9f98e9b2a506f055304f2d"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/memoryinputstream.hpp"
+          },
+          "hashes": {
+            "sha-256": "7a5caf51b37df3ce056b2cbdc023cbcc59af244d32c5142fa59b8c9f945728ad"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///d:/mygamefly/sfml-3.0.0-windows-vc17-64-bit/sfml-3.0.0/include/sfml/system/sleep.hpp"
+          },
+          "hashes": {
+            "sha-256": "63da51a5a305df5bd245ef64f4dab5f167f365d56635a46f135d54b66ec0ab6c"
+          }
+        }
+      ]
+    }
+  ]
+}
