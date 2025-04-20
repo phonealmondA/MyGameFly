@@ -160,8 +160,9 @@ void Rocket::drawVelocityVector(sf::RenderWindow& window, float scale)
 
     window.draw(line);
 }
+
 void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>& planets,
-    float timeStep, int steps) {
+    float timeStep, int steps, bool detectSelfIntersection) {
     // Create a vertex array for the trajectory line
     sf::VertexArray trajectory(sf::PrimitiveType::LineStrip);
 
@@ -175,32 +176,65 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
     startPoint.color = sf::Color::Blue; // Blue at the beginning
     trajectory.append(startPoint);
 
+    // Store previous positions to check for self-intersection (only used if detectSelfIntersection is true)
+    std::vector<sf::Vector2f> previousPositions;
+    previousPositions.push_back(simPosition);
+
+    // Minimum distance for self-intersection detection
+    const float selfIntersectionThreshold = 10.0f;
+
     // Simulate future positions
     for (int i = 0; i < steps; i++) {
         // Calculate gravitational forces from all planets
         sf::Vector2f totalAcceleration(0, 0);
+        bool collisionDetected = false;
 
         for (const auto& planet : planets) {
             sf::Vector2f direction = planet->getPosition() - simPosition;
             float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
-            // Skip if inside the planet
+            // Check for planet collision
             if (distance <= planet->getRadius() + 10.0f) {
-                // Stop the trajectory if we hit a planet
+                collisionDetected = true;
                 break;
             }
 
-            // IMPORTANT: Use the same gravitational constant as in GravitySimulator
-            const float G = 100000.0f; // Make sure this matches your GravitySimulator.h value
+            // Calculate gravitational force
+            const float G = 100000.0f; // Match GravitySimulator.h value
             float forceMagnitude = G * planet->getMass() * mass / (distance * distance);
-
             sf::Vector2f acceleration = normalize(direction) * forceMagnitude / mass;
             totalAcceleration += acceleration;
+        }
+
+        // Stop if we hit a planet
+        if (collisionDetected) {
+            break;
         }
 
         // Update simulated velocity and position
         simVelocity += totalAcceleration * timeStep;
         simPosition += simVelocity * timeStep;
+
+        // Self-intersection check - only performed if detectSelfIntersection is true
+        if (detectSelfIntersection) {
+            // Check for self-intersection with previous positions (except recent ones)
+            // Skip most recent positions to avoid false positives
+            for (size_t j = 0; j < previousPositions.size() - 10; j++) {
+                float distToPoint = distance(simPosition, previousPositions[j]);
+                if (distToPoint < selfIntersectionThreshold) {
+                    collisionDetected = true;
+                    break;
+                }
+            }
+
+            // Stop if self-intersection detected
+            if (collisionDetected) {
+                break;
+            }
+        }
+
+        // Store this position for future self-intersection checks (even if not checking now)
+        previousPositions.push_back(simPosition);
 
         // Calculate color gradient from blue to pink
         float ratio = static_cast<float>(i) / steps;

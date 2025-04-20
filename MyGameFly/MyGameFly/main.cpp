@@ -28,7 +28,7 @@ int main()
     float targetZoom = 1.0f;
     const float minZoom = 1.0f;      // Maximum zoom in (closest to planet)
     const float maxZoom = 1000.0f;   // Maximum zoom out (increased for larger system)
-    const float zoomSpeed = 2.0f;    // How quickly zoom changes
+    const float zoomSpeed = 1.0f;  // Increase from 2.0f for faster zoom
 
     // Load a font for the buttons
     sf::Font font;
@@ -40,13 +40,13 @@ int main()
 
     // Create buttons
     std::vector<Button> buttons;
-
-    // Zoom in button
+    
+    /* Zoom in button
     buttons.emplace_back(
         sf::Vector2f(20.f, 20.f), sf::Vector2f(80.f, 30.f),
         "Zoom In", font,
         [&]() {
-            targetZoom = std::max(minZoom, targetZoom / 1.5f);
+            targetZoom = std::max(minZoom, targetZoom / 1.0f); // More dramatic zoom
         }
     );
 
@@ -55,7 +55,7 @@ int main()
         sf::Vector2f(20.f, 60.f), sf::Vector2f(80.f, 30.f),
         "Zoom Out", font,
         [&]() {
-            targetZoom = std::min(maxZoom, targetZoom * 1.5f);
+            targetZoom = std::min(maxZoom, targetZoom * 1.0f); // More dramatic zoom
         }
     );
 
@@ -68,7 +68,7 @@ int main()
             gameView.setCenter(sf::Vector2f(400.f, 300.f));
         }
     );
-
+    */
     // Clock for tracking time between frames
     sf::Clock clock;
 
@@ -148,12 +148,16 @@ int main()
                 }
             }
 
+
             // Handle mouse button press events for buttons
             if (event->is<sf::Event::MouseButtonPressed>())
             {
                 const auto* mouseEvent = event->getIf<sf::Event::MouseButtonPressed>();
                 if (mouseEvent && mouseEvent->button == sf::Mouse::Button::Left)
                 {
+                    // Important: temporarily set UI view before checking button clicks
+                    window.setView(uiView);
+
                     // Get current mouse position
                     sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
                     sf::Vector2f mousePos = window.mapPixelToCoords(mousePosition, uiView);
@@ -164,8 +168,13 @@ int main()
                         if (button.contains(mousePos))
                         {
                             button.handleClick();
+                            // Optional: Add debug output
+                            // std::cout << "Button clicked!" << std::endl;
                         }
                     }
+
+                    // Reset back to game view
+                    window.setView(gameView);
                 }
             }
 
@@ -220,12 +229,13 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
             rocket.rotate(6.0f * deltaTime * 60.0f);
 
-        // Add camera controls
+        // In main.cpp, modify the Z key handling code
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
-            // Zoom out to see entire system
-            targetZoom = 800.0f;
+            // Gradually increase zoom to see more of the system
+            targetZoom = std::min(80.0f, targetZoom * 1.05f); // Increase by 5% each frame
             // Center between planets
-            gameView.setCenter((planet.getPosition() + planet2.getPosition()) / 2.0f);
+            //changed from: planet.getPosition() + planet2.getPosition()) / 2.0f : to focus rocket, not senter between planets. 
+            gameView.setCenter(rocket.getPosition());
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X)) {
             // Follow the rocket - calculate distances manually
@@ -287,7 +297,7 @@ int main()
         planet2.drawOrbitPath(window, gravitySimulator.getPlanets());
 
         // Draw the rocket trajectory
-        rocket.drawTrajectory(window, gravitySimulator.getPlanets());
+        rocket.drawTrajectory(window, gravitySimulator.getPlanets(), 0.5f, 200, false);
 
         // Draw objects
         planet.draw(window);
