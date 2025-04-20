@@ -309,6 +309,8 @@ int main()
         planet2.drawVelocityVector(window, 5.0f);
         rocket.drawVelocityVector(window, 2.0f);
 
+        // Add this line to draw gravity force vectors
+        rocket.drawGravityForceVectors(window, gravitySimulator.getPlanets(), 1000.0f);
         // Switch to UI view for buttons
         window.setView(uiView);
 
