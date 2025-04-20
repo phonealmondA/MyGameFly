@@ -87,9 +87,9 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
             rocket.applyThrust(1.0f);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-            rocket.rotate(-2.0f * deltaTime * 60.0f);
+            rocket.rotate(-6.0f * deltaTime * 60.0f);  // Increased from 2.0f to 3.0f
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-            rocket.rotate(2.0f * deltaTime * 60.0f);
+            rocket.rotate(6.0f * deltaTime * 60.0f);   // Increased from 2.0f to 3.0f
 
         // Update simulation
         gravitySimulator.update(deltaTime);
@@ -110,6 +110,9 @@ int main()
 
         // Clear window with black background
         window.clear(sf::Color::Black);
+
+        // Draw the trajectory first so it appears behind other elements
+        rocket.drawTrajectory(window, gravitySimulator.getPlanets());
 
         // Draw objects
         planet.draw(window);

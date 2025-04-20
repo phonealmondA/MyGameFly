@@ -15,4 +15,7 @@ public:
     void addRocket(Rocket* rocket);
     void update(float deltaTime);
     void clearRockets(); // New method to clear rockets list
+
+    // Add this method to get the planets list
+    const std::vector<Planet*>& getPlanets() const { return planets; }
 };

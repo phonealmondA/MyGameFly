@@ -30,4 +30,5 @@ public:
 
     // Draw velocity vector line
     void drawVelocityVector(sf::RenderWindow& window, float scale = 1.0f);
+    void drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>& planets,float timeStep = 0.1f, int steps = 100);
 };

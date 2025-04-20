@@ -99,3 +99,63 @@ void Rocket::drawVelocityVector(sf::RenderWindow& window, float scale)
 
     window.draw(line);
 }
+
+void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>& planets,
+    float timeStep, int steps) {
+    // Create a vertex array for the trajectory line
+    sf::VertexArray trajectory(sf::PrimitiveType::LineStrip);
+
+    // Start with current position and velocity
+    sf::Vector2f simPosition = position;
+    sf::Vector2f simVelocity = velocity;
+
+    // Add the starting point
+    sf::Vertex startPoint;
+    startPoint.position = simPosition;
+    startPoint.color = sf::Color::Blue; // Blue at the beginning
+    trajectory.append(startPoint);
+
+    // Simulate future positions
+    for (int i = 0; i < steps; i++) {
+        // Calculate gravitational forces from all planets
+        sf::Vector2f totalAcceleration(0, 0);
+
+        for (const auto& planet : planets) {
+            sf::Vector2f direction = planet->getPosition() - simPosition;
+            float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+            // Skip if inside the planet
+            if (distance <= planet->getRadius() + 10.0f) {
+                // Stop the trajectory if we hit a planet
+                break;
+            }
+
+            // Apply constant gravity like in GravitySimulator
+            const float constantForce = 100.0f; // Same as in GravitySimulator
+            sf::Vector2f acceleration = normalize(direction) * constantForce;
+
+            totalAcceleration += acceleration;
+        }
+
+        // Update simulated velocity and position
+        simVelocity += totalAcceleration * timeStep;
+        simPosition += simVelocity * timeStep;
+
+        // Calculate color gradient from blue to pink
+        float ratio = static_cast<float>(i) / steps;
+        sf::Color pointColor(
+            51 + 204 * ratio,  // R: 51 (blue) to 255 (pink)
+            51 + 0 * ratio,    // G: 51 (blue) to 51 (pink)
+            255 - 155 * ratio  // B: 255 (blue) to 100 (pink)
+        );
+
+        // Add point to trajectory
+        sf::Vertex point;
+        point.position = simPosition;
+        point.color = pointColor;
+        trajectory.append(point);
+    }
+
+    // Draw the trajectory
+    window.draw(trajectory);
+}
