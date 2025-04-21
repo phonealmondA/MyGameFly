@@ -78,6 +78,7 @@ void VehicleManager::applyThrust(float amount) {
         rocket->setThrustLevel(1.0f); // Set thrust level to max
         rocket->applyThrust(amount);
     }
+
     else {
         car->accelerate(amount);
     }

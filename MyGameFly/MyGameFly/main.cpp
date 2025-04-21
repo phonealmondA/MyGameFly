@@ -107,7 +107,7 @@ float calculatePeriapsis(sf::Vector2f pos, sf::Vector2f vel, float planetMass, f
 int main()
 {
     // Create a window with increased size 1280x720
-    sf::RenderWindow window(sf::VideoMode({ 1280, 720 }), "Rocket/Car Simulator");
+    sf::RenderWindow window(sf::VideoMode({ 1280, 720 }), "Katie's Space Program");
 
     // Create a view for the camera with initial zoom level
     sf::View gameView(sf::Vector2f(640.f, 360.f), sf::Vector2f(1280.f, 720.f));
@@ -394,9 +394,25 @@ int main()
         // Clear window with black background
         window.clear(sf::Color::Black);
 
-        // Draw orbit paths
-        planet.drawOrbitPath(window, gravitySimulator.getPlanets());
-        planet2.drawOrbitPath(window, gravitySimulator.getPlanets());
+        // Draw orbit paths// Find the closest planet to the rocket
+        Planet* closestPlanet = nullptr;
+        float closestDistance = std::numeric_limits<float>::max();
+        sf::Vector2f rocketPos = vehicleManager.getActiveVehicle()->getPosition();
+
+        for (auto& planetPtr : gravitySimulator.getPlanets()) {
+            sf::Vector2f direction = planetPtr->getPosition() - rocketPos;
+            float dist = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+            if (dist < closestDistance) {
+                closestDistance = dist;
+                closestPlanet = planetPtr;
+            }
+        }
+
+        // Draw orbit path only for the closest planet
+        if (closestPlanet) {
+            closestPlanet->drawOrbitPath(window, gravitySimulator.getPlanets());
+        }
 
         // Draw trajectory only if in rocket mode
         if (vehicleManager.getActiveVehicleType() == VehicleType::ROCKET) {

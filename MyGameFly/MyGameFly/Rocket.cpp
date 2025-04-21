@@ -95,7 +95,7 @@ Rocket* Rocket::mergeWith(Rocket* other)
     }
 
     // Add a more powerful engine to the merged rocket
-    mergedRocket->addPart(std::make_unique<Engine>(sf::Vector2f(0, 15), combinedThrust));
+    mergedRocket->addPart(std::make_unique<Engine>(sf::Vector2f(0, GameConstants::ROCKET_SIZE), combinedThrust));
 
     return mergedRocket;
 }

@@ -2,11 +2,11 @@
 
 namespace GameConstants {
     // Gravitational constants
-    constexpr float G = 1000.0f;  // Gravitational constant
+    constexpr float G = 100.0f;  // Gravitational constant
 
     // Planet configuration
     constexpr float MAIN_PLANET_MASS = 2500000.0f;
-    constexpr float SECONDARY_PLANET_MASS = 250000.0f;
+    constexpr float SECONDARY_PLANET_MASS = 1600000.0f;
     constexpr float MAIN_PLANET_RADIUS = 1000.0f;
     constexpr float SECONDARY_PLANET_RADIUS = 500.0f;
 
@@ -29,7 +29,7 @@ namespace GameConstants {
     constexpr int TRAJECTORY_STEPS = 5000;
     constexpr float TRAJECTORY_COLLISION_RADIUS = 10.0f;
     // Vehicle physics
-    constexpr float FRICTION = 0.98f;  // Friction coefficient for surface movement
+    constexpr float FRICTION = 0.0098f;  // Friction coefficient for surface movement
     constexpr float TRANSFORM_DISTANCE = 30.0f;  // Distance for vehicle transformation
     constexpr float ADAPTIVE_TIMESTEP_THRESHOLD = 10.0f;  // Threshold for adaptive timestep
     constexpr float CAR_WHEEL_RADIUS = 5.0f;  // Radius of car wheels
