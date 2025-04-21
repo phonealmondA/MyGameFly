@@ -46,4 +46,7 @@ public:
 
     void drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>& planets,
         float timeStep = 0.5f, int steps = 200, bool detectSelfIntersection = false);
+    float getThrustLevel() const { return thrustLevel; }
+    const std::vector<std::unique_ptr<RocketPart>>& getParts() const { return parts; }
+    float getRotation() const { return rotation; }
 };

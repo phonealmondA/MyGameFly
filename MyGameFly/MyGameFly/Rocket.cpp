@@ -245,6 +245,7 @@ void Rocket::drawGravityForceVectors(sf::RenderWindow& window, const std::vector
     }
 }
 
+
 void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>& planets,
     float timeStep, int steps, bool detectSelfIntersection) {
     // Create a vertex array for the trajectory line
@@ -268,14 +269,33 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
     const float G = GameConstants::G;
     const float selfIntersectionThreshold = GameConstants::TRAJECTORY_COLLISION_RADIUS;
 
+    // Create simulated planet positions and velocities
+    std::vector<sf::Vector2f> simPlanetPositions;
+    std::vector<sf::Vector2f> simPlanetVelocities;
+
+    // Initialize simulated planet data
+    for (const auto& planet : planets) {
+        simPlanetPositions.push_back(planet->getPosition());
+        simPlanetVelocities.push_back(planet->getVelocity());
+    }
+
     // Simulate future positions using more accurate physics
     for (int i = 0; i < steps; i++) {
         // Calculate gravitational forces from all planets
         sf::Vector2f totalAcceleration(0, 0);
         bool collisionDetected = false;
 
-        for (const auto& planet : planets) {
-            sf::Vector2f direction = planet->getPosition() - simPosition;
+        // Update simulated planet positions
+        for (size_t j = 0; j < planets.size(); j++) {
+            simPlanetPositions[j] += simPlanetVelocities[j] * timeStep;
+        }
+
+        // Calculate gravitational interactions between planets and rocket
+        for (size_t j = 0; j < planets.size(); j++) {
+            const auto& planet = planets[j];
+            sf::Vector2f planetPos = simPlanetPositions[j];
+
+            sf::Vector2f direction = planetPos - simPosition;
             float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
             // Check for planet collision using consistent collision radius
@@ -298,9 +318,7 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
             break;
         }
 
-
         // Use a smaller time step for more accurate integration when close to planets
-        // This improves accuracy when gravity is strong
         float adaptiveTimeStep = timeStep;
 
         // Optional: Adapt time step based on acceleration magnitude
@@ -311,6 +329,7 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
             adaptiveTimeStep = timeStep / 2.0f; // Use smaller steps when acceleration is high
         }
         */
+
         // Update simulated velocity and position
         // Use velocity Verlet integration for better numerical stability
         sf::Vector2f halfStepVelocity = simVelocity + totalAcceleration * (adaptiveTimeStep * 0.5f);
@@ -318,8 +337,12 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
 
         // Recalculate acceleration at new position for higher accuracy
         sf::Vector2f newAcceleration(0, 0);
-        for (const auto& planet : planets) {
-            sf::Vector2f direction = planet->getPosition() - simPosition;
+
+        for (size_t j = 0; j < planets.size(); j++) {
+            const auto& planet = planets[j];
+            sf::Vector2f planetPos = simPlanetPositions[j];
+
+            sf::Vector2f direction = planetPos - simPosition;
             float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
             if (distance <= planet->getRadius() + GameConstants::TRAJECTORY_COLLISION_RADIUS) {

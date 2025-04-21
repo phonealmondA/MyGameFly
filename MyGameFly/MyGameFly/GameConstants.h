@@ -13,7 +13,7 @@ namespace GameConstants {
     // Planet positions
     constexpr float MAIN_PLANET_X = 400.0f;
     constexpr float MAIN_PLANET_Y = 300.0f;
-    constexpr float SECONDARY_PLANET_X = 10000.0f;
+    constexpr float SECONDARY_PLANET_X = 20000.0f;
     constexpr float SECONDARY_PLANET_Y = 300.0f;
 
     // Rocket parameters
@@ -36,7 +36,8 @@ namespace GameConstants {
     constexpr float CAR_BODY_WIDTH = 30.0f;  // Width of car body
     constexpr float CAR_BODY_HEIGHT = 15.0f;  // Height of car body
     // Engine parameters
-    constexpr float ENGINE_THRUST_POWER = 1000000000000000.0f;  // Default thrust power for engines
+    constexpr float BASE_THRUST_MULTIPLIER = 100000000.0f;
+    constexpr float ENGINE_THRUST_POWER = G * BASE_THRUST_MULTIPLIER;
 
     // Vehicle transformation parameters
     constexpr float TRANSFORM_VELOCITY_FACTOR = 0.1f;  // Velocity reduction when transforming from rocket to car

@@ -119,12 +119,38 @@ int main()
 
     // Load a font for the buttons
     sf::Font font;
-    // SFML 3.0 still uses openFromFile but now takes a std::filesystem::path
-    if (!font.openFromFile("arial.ttf")) {
-        // Try alternative paths
-        if (!font.openFromFile("C:/Windows/Fonts/arial.ttf")) {
-            std::cerr << "Warning: Could not load font file. Text won't display correctly." << std::endl;
-        }
+    bool fontLoaded = false;
+
+    // Try to load from common locations based on platform
+#ifdef _WIN32
+// Windows font paths
+    if (font.openFromFile("arial.ttf") ||
+        font.openFromFile("C:/Windows/Fonts/arial.ttf") ||
+        font.openFromFile("C:/Windows/Fonts/Arial.ttf")) {
+        fontLoaded = true;
+    }
+#elif defined(__APPLE__)
+// macOS font paths
+    if (font.openFromFile("arial.ttf") ||
+        font.openFromFile("/Library/Fonts/Arial.ttf") ||
+        font.openFromFile("/System/Library/Fonts/Arial.ttf")) {
+        fontLoaded = true;
+    }
+#elif defined(__linux__)
+// Linux font paths
+    if (font.openFromFile("arial.ttf") ||
+        font.openFromFile("/usr/share/fonts/truetype/msttcorefonts/Arial.ttf") ||
+        font.openFromFile("/usr/share/fonts/TTF/arial.ttf")) {
+        fontLoaded = true;
+    }
+#else
+// Try just the local path on other platforms
+    fontLoaded = font.openFromFile("arial.ttf");
+#endif
+
+    if (!fontLoaded) {
+        std::cerr << "Warning: Could not load font file. Text won't display correctly." << std::endl;
+        // You might consider bundling a fallback font with your application
     }
 
     // Create UI view (fixed, doesn't zoom or move with game world)
@@ -157,12 +183,12 @@ int main()
     sf::Clock clock;
 
     // Create game objects - main planet in the center (pinned in place)
-    Planet planet(sf::Vector2f(GameConstants::MAIN_PLANET_X, GameConstants::MAIN_PLANET_Y),GameConstants::MAIN_PLANET_RADIUS, GameConstants::MAIN_PLANET_MASS,sf::Color::Blue);
+    Planet planet(sf::Vector2f(GameConstants::MAIN_PLANET_X, GameConstants::MAIN_PLANET_Y), GameConstants::MAIN_PLANET_RADIUS, GameConstants::MAIN_PLANET_MASS, sf::Color::Blue);
     // Set zero velocity to ensure it stays in place
     planet.setVelocity(sf::Vector2f(0.f, 0.f));
 
     // Create a second planet - position it much farther away
-    Planet planet2(sf::Vector2f(GameConstants::SECONDARY_PLANET_X, GameConstants::SECONDARY_PLANET_Y),GameConstants::SECONDARY_PLANET_RADIUS,GameConstants::SECONDARY_PLANET_MASS,sf::Color::Green);
+    Planet planet2(sf::Vector2f(GameConstants::SECONDARY_PLANET_X, GameConstants::SECONDARY_PLANET_Y), GameConstants::SECONDARY_PLANET_RADIUS, GameConstants::SECONDARY_PLANET_MASS, sf::Color::Green);
     // Calculate proper orbital velocity for circular orbit
     float distance = 10000.0f; // New distance between planets (800-400)
     // Using Kepler's laws: v = sqrt(G*M/r)
@@ -242,6 +268,7 @@ int main()
                 const auto* mouseEvent = event->getIf<sf::Event::MouseButtonPressed>();
                 if (mouseEvent && mouseEvent->button == sf::Mouse::Button::Left)
                 {
+
                     // Important: temporarily set UI view before checking button clicks
                     window.setView(uiView);
 
@@ -416,7 +443,7 @@ int main()
 
         // Draw trajectory only if in rocket mode
         if (vehicleManager.getActiveVehicleType() == VehicleType::ROCKET) {
-            vehicleManager.getRocket()->drawTrajectory(window, gravitySimulator.getPlanets(),GameConstants::TRAJECTORY_TIME_STEP, GameConstants::TRAJECTORY_STEPS, false);
+            vehicleManager.getRocket()->drawTrajectory(window, gravitySimulator.getPlanets(), GameConstants::TRAJECTORY_TIME_STEP, GameConstants::TRAJECTORY_STEPS, false);
         }
 
         // Draw objects
@@ -572,6 +599,69 @@ int main()
             }
 
             orbitInfoPanel.setText(ss.str());
+        }
+
+        // Add thrust metrics panel for rocket
+        if (vehicleManager.getActiveVehicleType() == VehicleType::ROCKET) {
+            Rocket* rocket = vehicleManager.getRocket();
+            sf::Vector2f rocketPos = rocket->getPosition();
+
+            // Calculate the closest planet for gravity reference
+            Planet* closestPlanet = nullptr;
+            float closestDistance = std::numeric_limits<float>::max();
+
+            for (const auto& planetPtr : planets) {
+                float dist = std::sqrt(std::pow(rocketPos.x - planetPtr->getPosition().x, 2) + std::pow(rocketPos.y - planetPtr->getPosition().y, 2));
+                if (dist < closestDistance) {
+                    closestDistance = dist;
+                    closestPlanet = planetPtr;
+                }
+            }
+
+            if (closestPlanet) {
+                // Calculate gravity force and direction
+                sf::Vector2f towardsPlanet = closestPlanet->getPosition() - rocketPos;
+                float dist = std::sqrt(towardsPlanet.x * towardsPlanet.x + towardsPlanet.y * towardsPlanet.y);
+                sf::Vector2f gravityDir = normalize(towardsPlanet);
+                // Calculate weight (gravity force) at current position
+                float weight = G * rocket->getMass() * closestPlanet->getMass() / (dist * dist);
+
+                // Calculate current thrust force based on thrust level
+                float maxThrust = 0.0f;
+                for (const auto& part : rocket->getParts()) {
+                    if (auto* engine = dynamic_cast<Engine*>(part.get())) {
+                        maxThrust += engine->getThrust();
+                    }
+                }
+                float currentThrust = maxThrust * rocket->getThrustLevel();
+
+                // Calculate expected acceleration (thrust/mass - gravity)
+                float thrustToWeightRatio = currentThrust / (weight > 0 ? weight : 1.0f);
+
+                // Calculate expected acceleration along the thrust direction
+                float radians = rocket->getRotation() * 3.14159f / 180.0f;
+                sf::Vector2f thrustDir(std::sin(radians), -std::cos(radians));
+
+                // Project gravity onto thrust direction (negative if opposing thrust)
+                float projectedGravity = gravityDir.x * thrustDir.x + gravityDir.y * thrustDir.y;
+                float gravityComponent = weight * projectedGravity;
+
+                // Net acceleration along thrust direction
+                float netAccel = (currentThrust - gravityComponent) / rocket->getMass();
+
+                // Create a simple panel for thrust metrics
+                TextPanel thrustMetricsPanel(font, 12, sf::Vector2f(10, 530), sf::Vector2f(250, 80));
+                std::stringstream ss;
+                ss << "THRUST METRICS\n"
+                    << "Thrust Level: " << std::fixed << std::setprecision(2) << rocket->getThrustLevel() * 100.0f << "%\n"
+                    << "Thrust-to-Weight Ratio: " << std::setprecision(2) << thrustToWeightRatio << "\n"
+                    << "Expected Acceleration: " << std::setprecision(2) << netAccel << " units/s²\n"
+                    << "Escape Velocity: " << std::setprecision(0)
+                    << std::sqrt(2.0f * G * closestPlanet->getMass() / dist) << " units/s";
+
+                thrustMetricsPanel.setText(ss.str());
+                thrustMetricsPanel.draw(window);
+            }
         }
 
         // Switch to UI view for text panels
