@@ -27,6 +27,8 @@ public:
     void setThrustLevel(float level); // Set thrust level between 0.0 and 1.0
     bool isColliding(const Planet& planet);
     void setNearbyPlanets(const std::vector<Planet*>& planets) { nearbyPlanets = planets; }
+    void setPosition(sf::Vector2f pos) { position = pos; }
+    Rocket* mergeWith(Rocket* other);
 
     // Add getter for mass
     float getMass() const { return mass; }

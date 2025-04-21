@@ -59,6 +59,45 @@ bool Rocket::isColliding(const Planet& planet)
     return checkCollision(planet);
 }
 
+Rocket* Rocket::mergeWith(Rocket* other)
+{
+    // Create a new rocket with combined properties
+    sf::Vector2f mergedPosition = (position + other->getPosition()) / 2.0f;
+
+    // Conservation of momentum: (m1v1 + m2v2) / (m1 + m2)
+    sf::Vector2f mergedVelocity = (velocity * mass + other->getVelocity() * other->getMass())
+        / (mass + other->getMass());
+
+    // Use the color of the more massive rocket
+    sf::Color mergedColor = (mass > other->getMass()) ? color : other->color;
+
+    // Create a new rocket with combined mass
+    float mergedMass = mass + other->getMass();
+    Rocket* mergedRocket = new Rocket(mergedPosition, mergedVelocity, mergedColor, mergedMass);
+
+    // Combine thrust capabilities by adding an engine with combined thrust power
+    float combinedThrust = 0.0f;
+
+    // This is simplified - in a real implementation, you'd need to loop through
+    // all engines from both rockets and sum their thrust values
+    for (const auto& part : parts) {
+        if (auto* engine = dynamic_cast<Engine*>(part.get())) {
+            combinedThrust += engine->getThrust();
+        }
+    }
+
+    for (const auto& part : other->parts) {
+        if (auto* engine = dynamic_cast<Engine*>(part.get())) {
+            combinedThrust += engine->getThrust();
+        }
+    }
+
+    // Add a more powerful engine to the merged rocket
+    mergedRocket->addPart(std::make_unique<Engine>(sf::Vector2f(0, 15), combinedThrust));
+
+    return mergedRocket;
+}
+
 void Rocket::update(float deltaTime)
 {
     bool resting = false;

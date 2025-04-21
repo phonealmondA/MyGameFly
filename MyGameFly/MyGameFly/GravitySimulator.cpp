@@ -15,6 +15,36 @@ void GravitySimulator::clearRockets()
     rockets.clear();
 }
 
+void GravitySimulator::addRocketGravityInteractions(float deltaTime)
+{
+    // Apply gravity between rockets
+    for (size_t i = 0; i < rockets.size(); i++) {
+        for (size_t j = i + 1; j < rockets.size(); j++) {
+            Rocket* rocket1 = rockets[i];
+            Rocket* rocket2 = rockets[j];
+
+            sf::Vector2f direction = rocket2->getPosition() - rocket1->getPosition();
+            float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+            // Minimum distance to prevent extreme forces when very close
+            const float minDistance = 10.0f;
+            if (distance < minDistance) {
+                distance = minDistance;
+            }
+
+            // Apply inverse square law for gravity
+            float forceMagnitude = G * rocket1->getMass() * rocket2->getMass() / (distance * distance);
+
+            sf::Vector2f normalizedDir = normalize(direction);
+            sf::Vector2f accel1 = normalizedDir * forceMagnitude / rocket1->getMass();
+            sf::Vector2f accel2 = -normalizedDir * forceMagnitude / rocket2->getMass();
+
+            rocket1->setVelocity(rocket1->getVelocity() + accel1 * deltaTime);
+            rocket2->setVelocity(rocket2->getVelocity() + accel2 * deltaTime);
+        }
+    }
+}
+
 void GravitySimulator::update(float deltaTime)
 {
     // Apply gravity between planets if enabled
@@ -77,4 +107,7 @@ void GravitySimulator::update(float deltaTime)
             }
         }
     }
+
+    // Add rocket-to-rocket gravity interactions
+    addRocketGravityInteractions(deltaTime);
 }
