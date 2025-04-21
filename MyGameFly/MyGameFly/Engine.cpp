@@ -1,14 +1,16 @@
 #include "Engine.h"
+#include "GameConstants.h"
 #include <cmath>
 
 Engine::Engine(sf::Vector2f relPos, float thrustPower, sf::Color col)
     : RocketPart(relPos, col), thrust(thrustPower)
 {
     // Create engine shape (a simple triangle)
+    // Create engine shape (a simple triangle)
     shape.setPointCount(3);
-    shape.setPoint(0, { 0, -10 });
-    shape.setPoint(1, { -5, 10 });
-    shape.setPoint(2, { 5, 10 });
+    shape.setPoint(0, { 0, -GameConstants::ROCKET_SIZE * 2 / 3 });
+    shape.setPoint(1, { -GameConstants::ROCKET_SIZE / 3, GameConstants::ROCKET_SIZE * 2 / 3 });
+    shape.setPoint(2, { GameConstants::ROCKET_SIZE / 3, GameConstants::ROCKET_SIZE * 2 / 3 });
     shape.setFillColor(color);
     shape.setOrigin({ 0, 0 });
 }

@@ -2,6 +2,7 @@
 #include "Car.h"
 #include "Rocket.h"
 #include "VectorHelper.h"
+#include "GameConstants.h"
 #include <cmath>
 #include <float.h>
 
@@ -10,14 +11,14 @@ Car::Car(sf::Vector2f pos, sf::Vector2f vel, sf::Color col)
     currentPlanet(nullptr), isGrounded(false)
 {
     // Create car body (small box)
-    body.setSize({ 30.0f, 15.0f });
+    body.setSize({ GameConstants::ROCKET_SIZE * 2.0f, GameConstants::ROCKET_SIZE });
     body.setFillColor(color);
     body.setOrigin({ 15.0f, 7.5f });
     body.setPosition(position);
 
     // Create wheels
     for (int i = 0; i < 2; i++) {
-        wheels[i].setRadius(5.0f);
+        wheels[i].setRadius(GameConstants::ROCKET_SIZE / 3.0f);
         wheels[i].setFillColor(sf::Color::Black);
         wheels[i].setOrigin({ 5.0f, 5.0f });
     }
@@ -55,7 +56,7 @@ void Car::checkGrounding(const std::vector<Planet*>& planets) {
         float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
         // Check if we're at or very close to the surface
-        if (distance <= (planet->getRadius() + 15.0f) && distance < closestDistance) {
+        if (distance <= (planet->getRadius() + GameConstants::ROCKET_SIZE) && distance < closestDistance) {
             closestDistance = distance;
             currentPlanet = const_cast<Planet*>(planet);
             isGrounded = true;
@@ -85,7 +86,7 @@ void Car::update(float deltaTime) {
         position += effectiveDir * speed * deltaTime;
 
         // Apply gravity to stick to surface
-        position = currentPlanet->getPosition() + normal * (currentPlanet->getRadius() + 10.0f);
+        position = currentPlanet->getPosition() + normal * (currentPlanet->getRadius() + GameConstants::TRAJECTORY_COLLISION_RADIUS);
 
         // Apply friction
         speed *= 0.98f;

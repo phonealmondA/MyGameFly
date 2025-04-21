@@ -52,7 +52,7 @@ bool Rocket::checkCollision(const Planet& planet)
 {
     float dist = distance(position, planet.getPosition());
     // Simple collision check based on distance
-    return dist < planet.getRadius() + 15.0f; // 15 = approximate rocket size
+    return dist < planet.getRadius() + GameConstants::ROCKET_SIZE; // Use constant for rocket size // 15 = approximate rocket size
 }
 
 bool Rocket::isColliding(const Planet& planet)
@@ -109,7 +109,7 @@ void Rocket::update(float deltaTime)
         float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
         // If we're at or below the surface of the planet
-        if (distance <= (planet->getRadius() + 15.0f)) {
+        if (distance <= (planet->getRadius() + GameConstants::ROCKET_SIZE)) {
             // Calculate normal force direction (away from planet center)
             sf::Vector2f normal = normalize(direction);
 
@@ -126,7 +126,7 @@ void Rocket::update(float deltaTime)
                 velocity = tangent * velDotTangent * 0.98f;
 
                 // Position correction to stay exactly on surface
-                position = planet->getPosition() + normal * (planet->getRadius() + 15.0f);
+                position = planet->getPosition() + normal * (planet->getRadius() + GameConstants::ROCKET_SIZE);
 
                 resting = true;
             }
@@ -305,7 +305,7 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
         // Optional: Adapt time step based on acceleration magnitude
         float accelMagnitude = std::sqrt(totalAcceleration.x * totalAcceleration.x +
             totalAcceleration.y * totalAcceleration.y);
-        if (accelMagnitude > 10.0f) {
+        if (accelMagnitude > GameConstants::G / 25.0f) { // Adaptive threshold based on G
             adaptiveTimeStep = timeStep / 2.0f; // Use smaller steps when acceleration is high
         }
 
@@ -320,7 +320,7 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
             sf::Vector2f direction = planet->getPosition() - simPosition;
             float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
-            if (distance <= planet->getRadius() + 10.0f) {
+            if (distance <= planet->getRadius() + GameConstants::TRAJECTORY_COLLISION_RADIUS) {
                 collisionDetected = true;
                 break;
             }

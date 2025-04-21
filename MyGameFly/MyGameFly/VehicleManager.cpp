@@ -1,5 +1,6 @@
 // VehicleManager.cpp
 #include "VehicleManager.h"
+#include "GameConstants.h"
 #include "VectorHelper.h"
 
 VehicleManager::VehicleManager(sf::Vector2f initialPos, const std::vector<Planet*>& planetList)
@@ -19,7 +20,7 @@ void VehicleManager::switchVehicle() {
         bool canTransform = false;
         for (const auto& planet : planets) {
             float dist = distance(rocket->getPosition(), planet->getPosition());
-            if (dist <= planet->getRadius() + 30.0f) {
+            if (dist <= planet->getRadius() + GameConstants::ROCKET_SIZE * 2.0f) {
                 canTransform = true;
                 break;
             }

@@ -29,7 +29,7 @@ void GravitySimulator::addRocketGravityInteractions(float deltaTime)
             float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
             // Minimum distance to prevent extreme forces when very close
-            const float minDistance = 10.0f;
+            const float minDistance = GameConstants::TRAJECTORY_COLLISION_RADIUS;
             if (distance < minDistance) {
                 distance = minDistance;
             }
@@ -97,7 +97,7 @@ void GravitySimulator::update(float deltaTime)
                     float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
                     // Avoid division by zero and very small distances
-                    if (distance > planet->getRadius() + 10.0f) {
+                    if (distance > planet->getRadius() + GameConstants::TRAJECTORY_COLLISION_RADIUS) {
                         float forceMagnitude = G * planet->getMass() * rocket->getMass() / (distance * distance);
                         sf::Vector2f acceleration = normalize(direction) * forceMagnitude / rocket->getMass();
                         sf::Vector2f velocityChange = acceleration * deltaTime;
@@ -116,7 +116,7 @@ void GravitySimulator::update(float deltaTime)
                 float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
                 // Avoid division by zero and very small distances
-                if (distance > planet->getRadius() + 10.0f) {
+                if (distance > planet->getRadius() + GameConstants::TRAJECTORY_COLLISION_RADIUS) {
                     float forceMagnitude = G * planet->getMass() * rocket->getMass() / (distance * distance);
                     sf::Vector2f acceleration = normalize(direction) * forceMagnitude / rocket->getMass();
                     sf::Vector2f velocityChange = acceleration * deltaTime;

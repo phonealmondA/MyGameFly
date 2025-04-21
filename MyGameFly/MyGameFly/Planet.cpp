@@ -78,7 +78,7 @@ void Planet::drawOrbitPath(sf::RenderWindow& window, const std::vector<Planet*>&
             float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
             // Skip if too close
-            if (distance <= otherPlanet->getRadius() + radius) {
+            if (distance <= otherPlanet->getRadius() + radius + GameConstants::TRAJECTORY_COLLISION_RADIUS) {
                 // Stop the trajectory if we hit another planet
                 break;
             }

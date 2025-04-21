@@ -1,5 +1,6 @@
 #pragma once
 #include "GameObject.h"
+#include "GameConstants.h"
 #include "RocketPart.h"
 #include "Engine.h"
 #include "Planet.h"
@@ -38,7 +39,7 @@ public:
     void drawWithConstantSize(sf::RenderWindow& window, float zoomLevel);
 
     // Draw velocity vector line
-    void drawVelocityVector(sf::RenderWindow& window, float scale = 1.0f);
+    void drawVelocityVector(sf::RenderWindow& window, float scale = GameConstants::VELOCITY_VECTOR_SCALE);
 
     // New method to draw gravity force vectors
     void drawGravityForceVectors(sf::RenderWindow& window, const std::vector<Planet*>& planets, float scale = 1.0f);
