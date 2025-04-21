@@ -15,7 +15,7 @@ Rocket::Rocket(sf::Vector2f pos, sf::Vector2f vel, sf::Color col, float m)
     body.setPosition(position);
 
     // Add default engine
-    addPart(std::make_unique<Engine>(sf::Vector2f(0, 15), 100.0f));
+    addPart(std::make_unique<Engine>(sf::Vector2f(0, 15), 10.0f));
 }
 
 void Rocket::addPart(std::unique_ptr<RocketPart> part)
