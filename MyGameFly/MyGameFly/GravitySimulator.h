@@ -1,26 +1,29 @@
+// Update in GravitySimulator.h
 #pragma once
 #include "Planet.h"
 #include "Rocket.h"
 #include "VectorHelper.h"
 #include <vector>
 
+// Forward declaration
+class VehicleManager;
+
 class GravitySimulator {
 private:
     std::vector<Planet*> planets;
     std::vector<Rocket*> rockets;
-    const float G = 100000.0f; // Simplified gravitational constant for game physics
-    bool simulatePlanetGravity = true; // Flag to control planet-to-planet gravity
+    VehicleManager* vehicleManager = nullptr;
+    const float G = 100000.0f; // Gravitational constant
+    bool simulatePlanetGravity = true;
 
 public:
     void addPlanet(Planet* planet);
     void addRocket(Rocket* rocket);
+    void addVehicleManager(VehicleManager* manager) { vehicleManager = manager; }
     void update(float deltaTime);
-    void clearRockets(); // Method to clear rockets list
+    void clearRockets();
     void addRocketGravityInteractions(float deltaTime);
 
-    // Method to get the planets list
     const std::vector<Planet*>& getPlanets() const { return planets; }
-
-    // Enable/disable gravity between planets
     void setSimulatePlanetGravity(bool enable) { simulatePlanetGravity = enable; }
 };
