@@ -4,6 +4,7 @@
 #include "Car.h"
 #include "VehicleManager.h"
 #include "GravitySimulator.h"
+#include "GameConstants.h"
 #include "Button.h"
 #include <memory>
 #include <vector>
@@ -14,7 +15,7 @@
 #include <iostream> // For std::cerr
 
 #ifdef _DEBUG
-#pragma comment(lib, "sfml-graphics-d.lib")
+#pragma comment(lib, "sfml-graphics-d.lib")s
 #pragma comment(lib, "sfml-window-d.lib")
 #pragma comment(lib, "sfml-system-d.lib")
 #else
@@ -147,7 +148,7 @@ int main()
     );
 
     // Gravitational constant - same as in GravitySimulator
-    const float G = 100000.0f;
+    const float G = GameConstants::G;  // Use the constant from the header
 
     // Create buttons
     std::vector<Button> buttons;
@@ -156,15 +157,15 @@ int main()
     sf::Clock clock;
 
     // Create game objects - main planet in the center (pinned in place)
-    Planet planet(sf::Vector2f(400.f, 300.f), 50.f, 10000.f, sf::Color::Blue);
+    Planet planet(sf::Vector2f(400.f, 300.f), 50.f, 5000.f, sf::Color::Blue);
     // Set zero velocity to ensure it stays in place
     planet.setVelocity(sf::Vector2f(0.f, 0.f));
 
     // Create a second planet - position it much farther away
-    Planet planet2(sf::Vector2f(600.f, 300.f), 30.f, 5000.f, sf::Color::Green);
+    Planet planet2(sf::Vector2f(5000.f, 300.f), 30.f, 2500.f, sf::Color::Green);
 
     // Calculate proper orbital velocity for circular orbit
-    float distance = 200.0f; // Distance between planets (600-400)
+    float distance = 10000.0f; // New distance between planets (800-400)
     // Using Kepler's laws: v = sqrt(G*M/r)
     float orbitSpeed = std::sqrt(G * planet.getMass() / distance);
     // Setting velocity perpendicular to the radial direction
@@ -400,7 +401,7 @@ int main()
 
         // Draw trajectory only if in rocket mode
         if (vehicleManager.getActiveVehicleType() == VehicleType::ROCKET) {
-            vehicleManager.getRocket()->drawTrajectory(window, gravitySimulator.getPlanets(), 0.5f, 200, false);
+            vehicleManager.getRocket()->drawTrajectory(window, gravitySimulator.getPlanets(), 0.1f, 20, false);
         }
 
         // Draw objects
@@ -417,7 +418,7 @@ int main()
             vehicleManager.drawVelocityVector(window, 2.0f);
 
             // Draw gravity force vectors only in rocket mode
-            vehicleManager.getRocket()->drawGravityForceVectors(window, gravitySimulator.getPlanets(), 1000.0f);
+            vehicleManager.getRocket()->drawGravityForceVectors(window, gravitySimulator.getPlanets(), 0.5f);
         }
 
         // Update info panels with current data

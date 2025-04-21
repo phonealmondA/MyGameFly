@@ -1,5 +1,6 @@
 #include "Planet.h"
 #include "VectorHelper.h"
+#include "GameConstants.h"
 
 Planet::Planet(sf::Vector2f pos, float radius, float mass, sf::Color color)
     : GameObject(pos, { 0, 0 }, color), mass(mass), radius(radius)
@@ -83,7 +84,7 @@ void Planet::drawOrbitPath(sf::RenderWindow& window, const std::vector<Planet*>&
             }
 
             // Use same gravitational constant as in GravitySimulator
-            const float G = 100000.0f;
+            const float G = GameConstants::G;  // Use the constant from the header
             float forceMagnitude = G * otherPlanet->getMass() * mass / (distance * distance);
 
             sf::Vector2f acceleration = normalize(direction) * forceMagnitude / mass;

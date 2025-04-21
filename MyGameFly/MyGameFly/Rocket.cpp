@@ -1,5 +1,6 @@
 #include "Rocket.h"
 #include "VectorHelper.h"
+#include "GameConstants.h"
 #include <cmath>
 
 Rocket::Rocket(sf::Vector2f pos, sf::Vector2f vel, sf::Color col, float m)
@@ -203,7 +204,7 @@ void Rocket::drawVelocityVector(sf::RenderWindow& window, float scale)
 void Rocket::drawGravityForceVectors(sf::RenderWindow& window, const std::vector<Planet*>& planets, float scale)
 {
     // Gravitational constant - same as in GravitySimulator
-    const float G = 100000.0f;
+    const float G = GameConstants::G;  // Use the constant from the header
 
     // Draw gravity force vector for each planet
     for (const auto& planet : planets) {
@@ -262,9 +263,9 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
     std::vector<sf::Vector2f> previousPositions;
     previousPositions.push_back(simPosition);
 
-    // Use the same gravitational constant as in GravitySimulator
-    const float G = 100000.0f;
-    const float selfIntersectionThreshold = 10.0f;
+    // Use the same gravitational constant as defined in GameConstants
+    const float G = GameConstants::G;
+    const float selfIntersectionThreshold = GameConstants::TRAJECTORY_COLLISION_RADIUS;
 
     // Simulate future positions using more accurate physics
     for (int i = 0; i < steps; i++) {
@@ -276,8 +277,8 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
             sf::Vector2f direction = planet->getPosition() - simPosition;
             float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
-            // Check for planet collision
-            if (distance <= planet->getRadius() + 10.0f) {
+            // Check for planet collision using consistent collision radius
+            if (distance <= planet->getRadius() + GameConstants::TRAJECTORY_COLLISION_RADIUS) {
                 collisionDetected = true;
                 break;
             }
@@ -295,6 +296,7 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
         if (collisionDetected) {
             break;
         }
+
 
         // Use a smaller time step for more accurate integration when close to planets
         // This improves accuracy when gravity is strong

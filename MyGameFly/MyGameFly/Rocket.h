@@ -19,7 +19,7 @@ private:
     bool checkCollision(const Planet& planet);
 
 public:
-    Rocket(sf::Vector2f pos, sf::Vector2f vel, sf::Color col = sf::Color::White, float m = 1000.0f);
+    Rocket(sf::Vector2f pos, sf::Vector2f vel, sf::Color col = sf::Color::White, float m = 1.0f);
 
     void addPart(std::unique_ptr<RocketPart> part);
     void applyThrust(float amount);
