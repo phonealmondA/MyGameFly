@@ -11,14 +11,14 @@ Car::Car(sf::Vector2f pos, sf::Vector2f vel, sf::Color col)
     currentPlanet(nullptr), isGrounded(false)
 {
     // Create car body (small box)
-    body.setSize({ GameConstants::ROCKET_SIZE * 2.0f, GameConstants::ROCKET_SIZE });
+    body.setSize({ GameConstants::CAR_BODY_WIDTH, GameConstants::CAR_BODY_HEIGHT });
     body.setFillColor(color);
-    body.setOrigin({ 15.0f, 7.5f });
+    body.setOrigin({ GameConstants::CAR_BODY_WIDTH / 2, GameConstants::CAR_BODY_HEIGHT / 2 });
     body.setPosition(position);
 
     // Create wheels
     for (int i = 0; i < 2; i++) {
-        wheels[i].setRadius(GameConstants::ROCKET_SIZE / 3.0f);
+        wheels[i].setRadius(GameConstants::CAR_WHEEL_RADIUS);
         wheels[i].setFillColor(sf::Color::Black);
         wheels[i].setOrigin({ 5.0f, 5.0f });
     }
@@ -129,7 +129,8 @@ void Car::drawWithConstantSize(sf::RenderWindow& window, float zoomLevel) {
 
 void Car::initializeFromRocket(const Rocket* rocket) {
     position = rocket->getPosition();
-    velocity = rocket->getVelocity() * 0.1f; // Reduce velocity when transforming
+    velocity = rocket->getVelocity() * GameConstants::TRANSFORM_VELOCITY_FACTOR;
+    // You'll need to add this constant // Reduce velocity when transforming
 
     // Set car tangent to planet surface if near a planet
     if (currentPlanet) {

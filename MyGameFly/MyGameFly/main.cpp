@@ -15,7 +15,7 @@
 #include <iostream> // For std::cerr
 
 #ifdef _DEBUG
-#pragma comment(lib, "sfml-graphics-d.lib")s
+#pragma comment(lib, "sfml-graphics-d.lib")
 #pragma comment(lib, "sfml-window-d.lib")
 #pragma comment(lib, "sfml-system-d.lib")
 #else
@@ -157,13 +157,12 @@ int main()
     sf::Clock clock;
 
     // Create game objects - main planet in the center (pinned in place)
-    Planet planet(sf::Vector2f(400.f, 300.f), 50.f, 5000.f, sf::Color::Blue);
+    Planet planet(sf::Vector2f(GameConstants::MAIN_PLANET_X, GameConstants::MAIN_PLANET_Y),GameConstants::MAIN_PLANET_RADIUS, GameConstants::MAIN_PLANET_MASS,sf::Color::Blue);
     // Set zero velocity to ensure it stays in place
     planet.setVelocity(sf::Vector2f(0.f, 0.f));
 
     // Create a second planet - position it much farther away
-    Planet planet2(sf::Vector2f(5000.f, 300.f), 30.f, 2500.f, sf::Color::Green);
-
+    Planet planet2(sf::Vector2f(GameConstants::SECONDARY_PLANET_X, GameConstants::SECONDARY_PLANET_Y),GameConstants::SECONDARY_PLANET_RADIUS,GameConstants::SECONDARY_PLANET_MASS,sf::Color::Green);
     // Calculate proper orbital velocity for circular orbit
     float distance = 10000.0f; // New distance between planets (800-400)
     // Using Kepler's laws: v = sqrt(G*M/r)
@@ -179,7 +178,7 @@ int main()
     // Calculate position on the first planet's edge - start at the top
     sf::Vector2f planetPos = planet.getPosition();
     float planetRadius = planet.getRadius();
-    float rocketSize = 15.0f; // Approximate rocket size
+    float rocketSize = GameConstants::ROCKET_SIZE; // Approximate rocket size
 
     // Direction vector pointing from planet center to the top (0, -1)
     sf::Vector2f direction(0, -1);
@@ -349,7 +348,7 @@ int main()
                 std::pow(vehicleManager.getActiveVehicle()->getPosition().x - planet2.getPosition().x, 2) +
                 std::pow(vehicleManager.getActiveVehicle()->getPosition().y - planet2.getPosition().y, 2)
             );
-            targetZoom = minZoom + (std::min(dist1, dist2) - (planet.getRadius() + 15.0f)) / 100.0f;
+            targetZoom = minZoom + (std::min(dist1, dist2) - (planet.getRadius() + GameConstants::ROCKET_SIZE)) / 100.0f;
             gameView.setCenter(vehicleManager.getActiveVehicle()->getPosition());
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C)) {
@@ -376,7 +375,7 @@ int main()
             !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) &&
             !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C)) {
             float closest = std::min(distance1, distance2);
-            targetZoom = minZoom + (closest - (planet.getRadius() + 15.0f)) / 100.0f;
+            targetZoom = minZoom + (closest - (planet.getRadius() + GameConstants::ROCKET_SIZE)) / 100.0f;
             targetZoom = std::max(minZoom, std::min(targetZoom, maxZoom));
 
             // Update view center to follow vehicle
@@ -401,7 +400,7 @@ int main()
 
         // Draw trajectory only if in rocket mode
         if (vehicleManager.getActiveVehicleType() == VehicleType::ROCKET) {
-            vehicleManager.getRocket()->drawTrajectory(window, gravitySimulator.getPlanets(), 0.1f, 20, false);
+            vehicleManager.getRocket()->drawTrajectory(window, gravitySimulator.getPlanets(),GameConstants::TRAJECTORY_TIME_STEP, GameConstants::TRAJECTORY_STEPS, false);
         }
 
         // Draw objects
@@ -418,7 +417,7 @@ int main()
             vehicleManager.drawVelocityVector(window, 2.0f);
 
             // Draw gravity force vectors only in rocket mode
-            vehicleManager.getRocket()->drawGravityForceVectors(window, gravitySimulator.getPlanets(), 0.5f);
+            vehicleManager.getRocket()->drawGravityForceVectors(window, gravitySimulator.getPlanets(), GameConstants::GRAVITY_VECTOR_SCALE);
         }
 
         // Update info panels with current data

@@ -8,15 +8,16 @@ Rocket::Rocket(sf::Vector2f pos, sf::Vector2f vel, sf::Color col, float m)
 {
     // Create rocket body (a simple triangle)
     body.setPointCount(3);
-    body.setPoint(0, { 0, -20 });
-    body.setPoint(1, { -10, 20 });
-    body.setPoint(2, { 10, 20 });
+    body.setPoint(0, { 0, -GameConstants::ROCKET_SIZE });
+    body.setPoint(1, { -GameConstants::ROCKET_SIZE / 2, GameConstants::ROCKET_SIZE });
+    body.setPoint(2, { GameConstants::ROCKET_SIZE / 2, GameConstants::ROCKET_SIZE });
     body.setFillColor(color);
     body.setOrigin({ 0, 0 });
     body.setPosition(position);
 
     // Add default engine
-    addPart(std::make_unique<Engine>(sf::Vector2f(0, 15), 10.0f));
+    addPart(std::make_unique<Engine>(sf::Vector2f(0, GameConstants::ROCKET_SIZE), GameConstants::ENGINE_THRUST_POWER));
+    // You'll need to add ENGINE_THRUST_POWER
 }
 
 void Rocket::addPart(std::unique_ptr<RocketPart> part)
@@ -305,10 +306,11 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
         // Optional: Adapt time step based on acceleration magnitude
         float accelMagnitude = std::sqrt(totalAcceleration.x * totalAcceleration.x +
             totalAcceleration.y * totalAcceleration.y);
-        if (accelMagnitude > GameConstants::G / 25.0f) { // Adaptive threshold based on G
+        /*
+        if (accelMagnitude > GameConstants::ADAPTIVE_TIMESTEP_THRESHOLD) { // Adaptive threshold based on G
             adaptiveTimeStep = timeStep / 2.0f; // Use smaller steps when acceleration is high
         }
-
+        */
         // Update simulated velocity and position
         // Use velocity Verlet integration for better numerical stability
         sf::Vector2f halfStepVelocity = simVelocity + totalAcceleration * (adaptiveTimeStep * 0.5f);

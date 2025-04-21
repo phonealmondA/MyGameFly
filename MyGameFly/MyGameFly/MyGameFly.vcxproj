@@ -148,16 +148,21 @@
     <ClCompile Include="Rocket.cpp" />
     <ClCompile Include="GravitySimulator.cpp" />
     <ClCompile Include="Button.cpp" />
+    <ClCompile Include="Car.cpp" />
+    <ClCompile Include="VehicleManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GameConstants.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="GravitySimulator.h" />
     <ClInclude Include="Button.h" />
+    <ClInclude Include="Car.h" />
     <ClInclude Include="VectorHelper.h" />
     <ClInclude Include="Rocket.h" />
     <ClInclude Include="RocketPart.h" />
     <ClInclude Include="Planet.h" />
+    <ClInclude Include="VehicleManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

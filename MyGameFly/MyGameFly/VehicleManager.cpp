@@ -20,7 +20,7 @@ void VehicleManager::switchVehicle() {
         bool canTransform = false;
         for (const auto& planet : planets) {
             float dist = distance(rocket->getPosition(), planet->getPosition());
-            if (dist <= planet->getRadius() + GameConstants::ROCKET_SIZE * 2.0f) {
+            if (dist <= planet->getRadius() + GameConstants::TRANSFORM_DISTANCE) {
                 canTransform = true;
                 break;
             }
