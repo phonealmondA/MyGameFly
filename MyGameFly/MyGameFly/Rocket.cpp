@@ -245,7 +245,6 @@ void Rocket::drawGravityForceVectors(sf::RenderWindow& window, const std::vector
     }
 }
 
-
 void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>& planets,
     float timeStep, int steps, bool detectSelfIntersection) {
     // Create a vertex array for the trajectory line
@@ -281,14 +280,39 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
 
     // Simulate future positions using more accurate physics
     for (int i = 0; i < steps; i++) {
-        // Calculate gravitational forces from all planets
-        sf::Vector2f totalAcceleration(0, 0);
-        bool collisionDetected = false;
-
         // Update simulated planet positions
         for (size_t j = 0; j < planets.size(); j++) {
             simPlanetPositions[j] += simPlanetVelocities[j] * timeStep;
         }
+
+        // Calculate gravitational interactions between planets
+        for (size_t j = 0; j < planets.size(); j++) {
+            // Skip the first planet (index 0) if it's pinned in place
+            if (j == 0) continue;
+
+            sf::Vector2f totalPlanetAcceleration(0, 0);
+
+            // Calculate gravity from other planets
+            for (size_t k = 0; k < planets.size(); k++) {
+                if (j == k) continue; // Skip self
+
+                sf::Vector2f direction = simPlanetPositions[k] - simPlanetPositions[j];
+                float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+                if (distance > planets[k]->getRadius() + planets[j]->getRadius()) {
+                    float forceMagnitude = G * planets[k]->getMass() * planets[j]->getMass() / (distance * distance);
+                    sf::Vector2f acceleration = normalize(direction) * forceMagnitude / planets[j]->getMass();
+                    totalPlanetAcceleration += acceleration;
+                }
+            }
+
+            // Update planet velocity
+            simPlanetVelocities[j] += totalPlanetAcceleration * timeStep;
+        }
+
+        // Calculate gravitational forces from all planets
+        sf::Vector2f totalAcceleration(0, 0);
+        bool collisionDetected = false;
 
         // Calculate gravitational interactions between planets and rocket
         for (size_t j = 0; j < planets.size(); j++) {
@@ -318,22 +342,9 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
             break;
         }
 
-        // Use a smaller time step for more accurate integration when close to planets
-        float adaptiveTimeStep = timeStep;
-
-        // Optional: Adapt time step based on acceleration magnitude
-        float accelMagnitude = std::sqrt(totalAcceleration.x * totalAcceleration.x +
-            totalAcceleration.y * totalAcceleration.y);
-        /*
-        if (accelMagnitude > GameConstants::ADAPTIVE_TIMESTEP_THRESHOLD) { // Adaptive threshold based on G
-            adaptiveTimeStep = timeStep / 2.0f; // Use smaller steps when acceleration is high
-        }
-        */
-
-        // Update simulated velocity and position
         // Use velocity Verlet integration for better numerical stability
-        sf::Vector2f halfStepVelocity = simVelocity + totalAcceleration * (adaptiveTimeStep * 0.5f);
-        simPosition += halfStepVelocity * adaptiveTimeStep;
+        sf::Vector2f halfStepVelocity = simVelocity + totalAcceleration * (timeStep * 0.5f);
+        simPosition += halfStepVelocity * timeStep;
 
         // Recalculate acceleration at new position for higher accuracy
         sf::Vector2f newAcceleration(0, 0);
@@ -360,7 +371,7 @@ void Rocket::drawTrajectory(sf::RenderWindow& window, const std::vector<Planet*>
         }
 
         // Complete the velocity update with the new acceleration
-        simVelocity = halfStepVelocity + newAcceleration * (adaptiveTimeStep * 0.5f);
+        simVelocity = halfStepVelocity + newAcceleration * (timeStep * 0.5f);
 
         // Self-intersection check if enabled
         if (detectSelfIntersection) {
