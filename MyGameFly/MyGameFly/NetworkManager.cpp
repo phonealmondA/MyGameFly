@@ -118,8 +118,15 @@ void NetworkManager::update() {
                     packet >> input;
 
                     if (onPlayerInputReceived) {
-                        // Use i+1 as client ID (matches what we sent to client)
-                        onPlayerInputReceived(i + 1, input);
+                        // Debug output
+                        std::cout << "Server received input from player ID: " << input.playerId
+                            << " W/Up:" << input.thrustForward
+                            << " S/Down:" << input.thrustBackward
+                            << " A/Left:" << input.rotateLeft
+                            << " D/Right:" << input.rotateRight << std::endl;
+
+                        // Use the playerId from the input packet
+                        onPlayerInputReceived(input.playerId, input);
                     }
                 }
             }

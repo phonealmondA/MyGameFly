@@ -103,24 +103,32 @@ void GameServer::handlePlayerInput(int playerId, const PlayerInput& input) {
         return;
     }
 
+    // Debug output
+    std::cout << "Server applying input to player ID: " << playerId << std::endl;
+
     // Apply input to the correct player's vehicle manager
     VehicleManager* manager = it->second;
 
     // Apply input to the vehicle
     if (input.thrustForward) {
         manager->applyThrust(1.0f);
+        std::cout << "Applied thrust forward to player " << playerId << std::endl;
     }
     if (input.thrustBackward) {
         manager->applyThrust(-0.5f);
+        std::cout << "Applied thrust backward to player " << playerId << std::endl;
     }
     if (input.rotateLeft) {
         manager->rotate(-6.0f * input.deltaTime * 60.0f);
+        std::cout << "Applied rotate left to player " << playerId << std::endl;
     }
     if (input.rotateRight) {
         manager->rotate(6.0f * input.deltaTime * 60.0f);
+        std::cout << "Applied rotate right to player " << playerId << std::endl;
     }
     if (input.switchVehicle) {
         manager->switchVehicle();
+        std::cout << "Applied vehicle switch to player " << playerId << std::endl;
     }
 
     // Apply thrust level

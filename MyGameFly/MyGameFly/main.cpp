@@ -243,46 +243,6 @@ int main(int argc, char* argv[])
     // Clock for tracking time between frames
     sf::Clock clock;
 
-    // Setup multiplayer components// In main() function, after parsing command-line arguments:
-
-// Setup multiplayer componentsif (multiplayer) {
-    if (isHost) {
-        gameServer = new GameServer();
-        gameServer->initialize();
-
-        // Connect NetworkManager with GameServer
-        networkManager.setGameServer(gameServer);
-
-        // Create a player for the server with ID 0
-        int localPlayerId = gameServer->addPlayer(0,
-            planets[0]->getPosition() + sf::Vector2f(0, -(planets[0]->getRadius() + GameConstants::ROCKET_SIZE)),
-            sf::Color::White);
-
-        activeVehicleManager = gameServer->getPlayer(localPlayerId);
-
-        // Setup callback to handle player input
-        networkManager.onPlayerInputReceived = [](int clientId, const PlayerInput& input) {
-            if (gameServer) {
-                // Use the clientId directly instead of input.playerId
-                gameServer->handlePlayerInput(clientId, input);
-            }
-            };
-    }
-    else {
-        gameClient = new GameClient();
-        gameClient->initialize();
-
-        // Connect NetworkManager with GameClient
-        networkManager.setGameClient(gameClient);
-
-        // Setup callback to handle game state updates
-        networkManager.onGameStateReceived = [](const GameState& state) {
-            if (gameClient) {
-                gameClient->processGameState(state);
-            }
-            };
-    }
-}
     // Reference to the active vehicle manager (either from server/client or local)
     VehicleManager* activeVehicleManager = nullptr;
     std::vector<Planet*> planets;
@@ -291,17 +251,44 @@ int main(int argc, char* argv[])
     if (multiplayer) {
         if (isHost) {
             // Server creates and manages the game state
+            gameServer = new GameServer();
+            gameServer->initialize();
+
+            // Connect NetworkManager with GameServer
+            networkManager.setGameServer(gameServer);
+
             planets = gameServer->getPlanets();
 
-            // Create a player for the server
-            int localPlayerId = gameServer->addPlayer(
-                planets[0]->getPosition() + sf::Vector2f(0, -(planets[0]->getRadius() + GameConstants::ROCKET_SIZE)),
-                sf::Color::White);
+            // Create a player for the server with ID 0
+            sf::Vector2f initialPos = planets[0]->getPosition() +
+                sf::Vector2f(0, -(planets[0]->getRadius() + GameConstants::ROCKET_SIZE));
+            int localPlayerId = gameServer->addPlayer(0, initialPos, sf::Color::White);
 
             activeVehicleManager = gameServer->getPlayer(localPlayerId);
+
+            // Setup callback to handle player input
+            networkManager.onPlayerInputReceived = [](int clientId, const PlayerInput& input) {
+                if (gameServer) {
+                    // Use the clientId directly instead of input.playerId
+                    gameServer->handlePlayerInput(clientId, input);
+                }
+                };
         }
         else {
             // Client receives game state from server
+            gameClient = new GameClient();
+            gameClient->initialize();
+
+            // Connect NetworkManager with GameClient
+            networkManager.setGameClient(gameClient);
+
+            // Setup callback to handle game state updates
+            networkManager.onGameStateReceived = [](const GameState& state) {
+                if (gameClient) {
+                    gameClient->processGameState(state);
+                }
+                };
+
             gameClient->setLocalPlayerId(1); // Temporary ID until server assigns one
             planets = gameClient->getPlanets();
             activeVehicleManager = gameClient->getLocalPlayer();
@@ -446,8 +433,7 @@ int main(int argc, char* argv[])
                 }
             }
 
-            // Handle key events
-            if (event->is<sf::Event::KeyPressed>())
+            // Handle key eventsif (event->is<sf::Event::KeyPressed>())
             {
                 const auto* keyEvent = event->getIf<sf::Event::KeyPressed>();
                 if (keyEvent)
@@ -461,12 +447,23 @@ int main(int argc, char* argv[])
                         planetGravity = !planetGravity;
                         gravitySimulator.setSimulatePlanetGravity(planetGravity);
                     }
-                    else if (keyEvent->code == sf::Keyboard::Key::L && !lKeyPressed)
+                    else if (keyEvent->code == sf::Keyboard::Key::L && !lKeyPressed && !multiplayer)
                     {
-                        // Transform between rocket and car
+                        // Transform between rocket and car (single player only)
                         lKeyPressed = true;
                         activeVehicleManager->switchVehicle();
                     }
+                    // Note: In multiplayer host mode, L key is handled in the input section
+                    // In client mode, L key is captured in GameClient::getLocalPlayerInput
+                }
+            }
+
+            if (event->is<sf::Event::KeyReleased>())
+            {
+                const auto* keyEvent = event->getIf<sf::Event::KeyReleased>();
+                if (keyEvent && keyEvent->code == sf::Keyboard::Key::L)
+                {
+                    lKeyPressed = false;
                 }
             }
 
@@ -481,8 +478,8 @@ int main(int argc, char* argv[])
         }
 
         // In multiplayer client mode, don't handle input here as it's sent to the server
-        if (!multiplayer || isHost) {
-            // Handle continuous key presses for thrust level
+        if (!multiplayer) {
+            // Single player - direct input handling
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1))
                 activeVehicleManager->getRocket()->setThrustLevel(0.1f);
             else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2))
@@ -516,6 +513,48 @@ int main(int argc, char* argv[])
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
                 activeVehicleManager->rotate(6.0f * deltaTime * 60.0f);
         }
+        else if (isHost) {
+            // Server - handle inputs for your own rocket only
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1))
+                gameServer->getPlayer(0)->getRocket()->setThrustLevel(0.1f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2))
+                gameServer->getPlayer(0)->getRocket()->setThrustLevel(0.2f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num3))
+                gameServer->getPlayer(0)->getRocket()->setThrustLevel(0.3f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num4))
+                gameServer->getPlayer(0)->getRocket()->setThrustLevel(0.4f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num5))
+                gameServer->getPlayer(0)->getRocket()->setThrustLevel(0.5f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num6))
+                gameServer->getPlayer(0)->getRocket()->setThrustLevel(0.6f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num7))
+                gameServer->getPlayer(0)->getRocket()->setThrustLevel(0.7f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num8))
+                gameServer->getPlayer(0)->getRocket()->setThrustLevel(0.8f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num9))
+                gameServer->getPlayer(0)->getRocket()->setThrustLevel(0.9f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num0))
+                gameServer->getPlayer(0)->getRocket()->setThrustLevel(0.0f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Equal)) // = key
+                gameServer->getPlayer(0)->getRocket()->setThrustLevel(1.0f);
+
+            // Apply thrust and rotation directly to server's player with ID 0
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+                gameServer->getPlayer(0)->applyThrust(1.0f);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
+                gameServer->getPlayer(0)->applyThrust(-0.5f); // Brake/reverse
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+                gameServer->getPlayer(0)->rotate(-6.0f * deltaTime * 60.0f);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+                gameServer->getPlayer(0)->rotate(6.0f * deltaTime * 60.0f);
+
+            // Vehicle transformation for host player
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::L) && !lKeyPressed) {
+                lKeyPressed = true;
+                gameServer->getPlayer(0)->switchVehicle();
+            }
+        }
+        // For clients, input is captured in GameClient::getLocalPlayerInput() and sent via network
 
         // Camera control keys
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
