@@ -183,13 +183,13 @@ int main()
     sf::Clock clock;
     // Create game objects - main planet in the center (pinned in place)
     Planet planet(sf::Vector2f(GameConstants::MAIN_PLANET_X, GameConstants::MAIN_PLANET_Y),
-        GameConstants::MAIN_PLANET_RADIUS, GameConstants::MAIN_PLANET_MASS, sf::Color::Blue);
+        0, GameConstants::MAIN_PLANET_MASS, sf::Color::Blue);
     // Set zero velocity to ensure it stays in place
     planet.setVelocity(sf::Vector2f(0.f, 0.f));
 
     // Create a second planet - position it using the calculated position
     Planet planet2(sf::Vector2f(GameConstants::SECONDARY_PLANET_X, GameConstants::SECONDARY_PLANET_Y),
-        GameConstants::SECONDARY_PLANET_RADIUS, GameConstants::SECONDARY_PLANET_MASS, sf::Color::Green);
+        0, GameConstants::SECONDARY_PLANET_MASS, sf::Color::Green);
     // Set the pre-calculated orbital velocity for a circular orbit
     planet2.setVelocity(sf::Vector2f(0.f, GameConstants::SECONDARY_PLANET_ORBITAL_VELOCITY));
     // Calculate proper orbital velocity for circular orbit using the constant distance

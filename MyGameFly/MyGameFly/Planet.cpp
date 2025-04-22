@@ -1,13 +1,23 @@
 #include "Planet.h"
 #include "VectorHelper.h"
 #include "GameConstants.h"
+#include <cmath>
 
 Planet::Planet(sf::Vector2f pos, float radius, float mass, sf::Color color)
-    : GameObject(pos, { 0, 0 }, color), mass(mass), radius(radius)
+    : GameObject(pos, { 0, 0 }, color), mass(mass)
 {
-    shape.setRadius(radius);
+    // If a specific radius was provided, use it
+    if (radius > 0) {
+        this->radius = radius;
+    }
+    else {
+        // Otherwise calculate from mass
+        updateRadiusFromMass();
+    }
+
+    shape.setRadius(this->radius);
     shape.setFillColor(color);
-    shape.setOrigin({ radius, radius });
+    shape.setOrigin({ this->radius, this->radius });
     shape.setPosition(position);
 }
 
@@ -30,6 +40,23 @@ float Planet::getMass() const
 float Planet::getRadius() const
 {
     return radius;
+}
+
+void Planet::setMass(float newMass)
+{
+    mass = newMass;
+    updateRadiusFromMass();
+}
+
+void Planet::updateRadiusFromMass()
+{
+    // Use cube root relationship between mass and radius
+    radius = GameConstants::BASE_RADIUS_FACTOR *
+        std::pow(mass / GameConstants::REFERENCE_MASS, 1.0f / 3.0f);
+
+    // Update the visual shape
+    shape.setRadius(radius);
+    shape.setOrigin({ radius, radius });
 }
 
 void Planet::drawVelocityVector(sf::RenderWindow& window, float scale)

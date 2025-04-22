@@ -5,8 +5,12 @@ namespace GameConstants {
     constexpr float G = 100.0f;  // Gravitational constant
     constexpr float PI = 3.14159265358979323846f;
 
+    // Mass-radius relationship constants
+    constexpr float BASE_RADIUS_FACTOR = 100.0f;  // Base size factor for planets
+    constexpr float REFERENCE_MASS = 10000.0f;  // Reference mass for radius scaling
+
     // Primary inputs
-    constexpr float MAIN_PLANET_MASS = 10000000.0f;  // Primary parameter to adjust
+    constexpr float MAIN_PLANET_MASS = 100000.0f;  // Primary parameter to adjust
     constexpr float ORBIT_PERIOD = 120.0f;  // Desired orbit period in seconds
 
     // Derived parameters
@@ -15,16 +19,15 @@ namespace GameConstants {
     // Fixed radius values (not using functions that would cause constexpr issues)
     constexpr float MAIN_PLANET_RADIUS = 10000.0f;  // Base radius at this mass
     constexpr float MASS_RATIO = 0.08f;  // Same as SECONDARY_PLANET_MASS / MAIN_PLANET_MASS
-    constexpr float CUBE_ROOT_APPROX = 0.043f;  // Approximate cube root of 0.08
-    constexpr float SECONDARY_PLANET_RADIUS = MAIN_PLANET_RADIUS * CUBE_ROOT_APPROX;  // ~430
+    constexpr float CUBE_ROOT_APPROX = 43.0f;  // Approximate cube root of 0.08
+    constexpr float SECONDARY_PLANET_RADIUS = (MAIN_PLANET_RADIUS / CUBE_ROOT_APPROX)/10000;  // ~430
 
     // Planet positions
     constexpr float MAIN_PLANET_X = 400.0f;
     constexpr float MAIN_PLANET_Y = 300.0f;
 
     // Non-constexpr calculations for orbital parameters
-    const float PLANET_ORBIT_DISTANCE =
-        std::pow((G * MAIN_PLANET_MASS * ORBIT_PERIOD * ORBIT_PERIOD) / (4.0f * PI * PI), 1.0f / 3.0f);
+    const float PLANET_ORBIT_DISTANCE = std::pow((G * MAIN_PLANET_MASS * ORBIT_PERIOD * ORBIT_PERIOD) / (4.0f * PI * PI), 1.0f / 3.0f);
 
     // Secondary planet position based on orbital distance
     const float SECONDARY_PLANET_X = MAIN_PLANET_X + PLANET_ORBIT_DISTANCE;

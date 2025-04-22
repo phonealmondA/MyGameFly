@@ -17,6 +17,10 @@ public:
     float getMass() const;
     float getRadius() const;
 
+    // New methods for dynamic radius
+    void setMass(float newMass);
+    void updateRadiusFromMass();
+
     // Draw velocity vector for the planet
     void drawVelocityVector(sf::RenderWindow& window, float scale = 1.0f);
 
