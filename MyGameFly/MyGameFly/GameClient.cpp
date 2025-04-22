@@ -138,16 +138,17 @@ void GameClient::processGameState(const GameState& state) {
     }
 }
 
+
 PlayerInput GameClient::getLocalPlayerInput(float deltaTime) const {
     PlayerInput input;
     input.playerId = localPlayerId;
     input.deltaTime = deltaTime;
 
-    // Get keyboard state
-    input.thrustForward = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up);
-    input.thrustBackward = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down);
-    input.rotateLeft = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left);
-    input.rotateRight = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right);
+    // Get keyboard state - only WAD keys, no arrow keys
+    input.thrustForward = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W);
+    input.thrustBackward = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S);
+    input.rotateLeft = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A);
+    input.rotateRight = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D);
     input.switchVehicle = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::L);
 
     // Get thrust level

@@ -218,14 +218,29 @@ int main(int argc, char* argv[])
     TextPanel controlsPanel(font, 12, sf::Vector2f(10, 410), sf::Vector2f(250, 120));
 
     // Set controls info - add multiplayer status if applicable
-    std::string controlsText =
-        "CONTROLS:\n"
-        "Arrows: Move/Steer\n"
-        "1-9: Set thrust level\n"
-        "L: Transform vehicle\n"
-        "Z: Zoom out\n"
-        "X: Auto-zoom\n"
-        "C: Focus planet 2";
+    std::string controlsText;
+    if (multiplayer && !isHost) {
+        // Client controls - WAD only
+        controlsText =
+            "CONTROLS:\n"
+            "WAD: Move/Steer\n"
+            "1-9: Set thrust level\n"
+            "L: Transform vehicle\n"
+            "Z: Zoom out\n"
+            "X: Auto-zoom\n"
+            "C: Focus planet 2";
+    }
+    else {
+        // Server or single player - Arrow keys
+        controlsText =
+            "CONTROLS:\n"
+            "Arrows: Move/Steer\n"
+            "1-9: Set thrust level\n"
+            "L: Transform vehicle\n"
+            "Z: Zoom out\n"
+            "X: Auto-zoom\n"
+            "C: Focus planet 2";
+    }
 
     if (multiplayer) {
         controlsText += "\n\nMULTIPLAYER MODE: ";

@@ -1,6 +1,7 @@
 // GameServer.cpp
 #include "GameServer.h"
 #include "GameConstants.h"
+#include <iostream> // Add this line to use std::cout
 
 GameServer::GameServer() : sequenceNumber(0), gameTime(0.0f) {
 }
