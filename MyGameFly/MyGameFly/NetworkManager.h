@@ -1,4 +1,4 @@
-// NetworkManager.h
+// NetworkManager.h (complete improved file)
 #pragma once
 #include <SFML/Network.hpp>
 #include <vector>
@@ -24,6 +24,11 @@ private:
     GameServer* gameServer;
     GameClient* gameClient;
 
+    // Network diagnostics
+    sf::Clock lastPacketTime;
+    int packetLossCounter;
+    int pingMs;
+
 public:
     NetworkManager();
     ~NetworkManager();
@@ -38,6 +43,11 @@ public:
     void update();
     bool sendGameState(const GameState& state);   // Host only
     bool sendPlayerInput(const PlayerInput& input); // Client only
+
+    // Network robustness improvements
+    void enableRobustNetworking();
+    float getPing() const;
+    int getPacketLoss() const;
 
     bool isConnected() const { return connected; }
     bool getIsHost() const { return isHost; }

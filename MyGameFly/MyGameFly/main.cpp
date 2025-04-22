@@ -157,6 +157,20 @@ int main(int argc, char* argv[])
     // Parse command line arguments for multiplayer mode
     bool multiplayer = parseCommandLine(argc, argv);
 
+    // Add this code here
+    if (multiplayer) {
+        networkManager.enableRobustNetworking();
+
+        // Set a reasonable latency compensation time for client
+        if (!isHost && gameClient) {
+            gameClient->setLatencyCompensation(0.2f); // 200ms interpolation window
+        }
+
+        std::cout << "Network connection established. Running in "
+            << (isHost ? "server" : "client") << " mode." << std::endl;
+    }
+
+
     // Create a window with increased size 1280x720
     std::string windowTitle = "Katie's Space Program";
     if (multiplayer) {
@@ -216,6 +230,7 @@ int main(int argc, char* argv[])
     TextPanel planetInfoPanel(font, 12, sf::Vector2f(10, 170), sf::Vector2f(250, 120));
     TextPanel orbitInfoPanel(font, 12, sf::Vector2f(10, 300), sf::Vector2f(250, 100));
     TextPanel controlsPanel(font, 12, sf::Vector2f(10, 410), sf::Vector2f(250, 120));
+    TextPanel multiplayerPanel(font, 12, sf::Vector2f(10, 620), sf::Vector2f(250, 90));
 
     // Set controls info - add multiplayer status if applicable
     std::string controlsText;
@@ -365,28 +380,68 @@ int main(int argc, char* argv[])
 
         // Update network state for multiplayer
         if (multiplayer) {
+            // Update network manager to handle connections
             networkManager.update();
+
+            // Track game time for interpolation
+            static float gameTime = 0.0f;
+            gameTime += deltaTime;
 
             if (isHost) {
                 // Update server simulation
                 gameServer->update(deltaTime);
 
-                // Send updated game state to clients
-                GameState state = gameServer->getGameState();
-                networkManager.sendGameState(state);
+                // Send updated game state to clients every 50ms (20 times per second)
+                static sf::Clock stateUpdateClock;
+                if (stateUpdateClock.getElapsedTime().asMilliseconds() > 50) {
+                    GameState state = gameServer->getGameState();
+                    networkManager.sendGameState(state);
+                    stateUpdateClock.restart();
+                }
             }
             else {
-                // Gather input
+                // Client-side input handling with prediction
+
+                // Get input
                 PlayerInput input = gameClient->getLocalPlayerInput(deltaTime);
 
-                // Send input to server
-                networkManager.sendPlayerInput(input);
+                // Apply input immediately for responsiveness
+                gameClient->applyLocalInput(input);
 
-                // Update client prediction
+                // Send to server (we'll do this more frequently than state updates)
+                static sf::Clock inputUpdateClock;
+                if (inputUpdateClock.getElapsedTime().asMilliseconds() > 33) { // ~30 updates per second
+                    networkManager.sendPlayerInput(input);
+                    inputUpdateClock.restart();
+                }
+
+                // Update client prediction and interpolation
                 gameClient->update(deltaTime);
+                gameClient->interpolateRemotePlayers(gameTime);
+            }
+
+            // Add network status panel (create this panel earlier with the other panels)
+            std::stringstream networkStatusSS;
+            networkStatusSS << "NETWORK STATUS\n";
+            if (isHost) {
+                networkStatusSS << "Mode: Host\n";
+                networkStatusSS << "Connected Clients: " << (gameServer ? gameServer->getPlayers().size() - 1 : 0) << "\n";
+            }
+            else {
+                networkStatusSS << "Mode: Client\n";
+                networkStatusSS << "Connected: " << (networkManager.isConnected() ? "Yes" : "No") << "\n";
+                networkStatusSS << "Ping: " << networkManager.getPing() << "ms\n";
+                networkStatusSS << "Player ID: " << gameClient->getLocalPlayerId() << "\n";
+            }
+            networkStatusSS << "Packet Loss: " << networkManager.getPacketLoss();
+
+            // Find the multiplayerPanel in your code that displays multiplayer status
+            // and set its text to networkStatusSS.str()
+            if (multiplayer) {
+                multiplayerPanel.setText(networkStatusSS.str());
             }
         }
-
+            
         // Check for events
         if (std::optional<sf::Event> event = window.pollEvent())
         {

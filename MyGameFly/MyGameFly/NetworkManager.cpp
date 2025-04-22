@@ -1,4 +1,4 @@
-// NetworkManager.cpp
+// NetworkManager.cpp (complete improved file)
 #include "NetworkManager.h"
 #include "GameServer.h"
 #include "GameClient.h"
@@ -8,11 +8,22 @@
 enum MessageType {
     MSG_GAME_STATE = 1,
     MSG_PLAYER_INPUT = 2,
-    MSG_PLAYER_ID = 3
+    MSG_PLAYER_ID = 3,
+    MSG_HEARTBEAT = 4,
+    MSG_DISCONNECT = 5
 };
 
-NetworkManager::NetworkManager() : isHost(false), port(0), connected(false), gameServer(nullptr), gameClient(nullptr) {
+NetworkManager::NetworkManager()
+    : isHost(false),
+    port(0),
+    connected(false),
+    gameServer(nullptr),
+    gameClient(nullptr),
+    lastPacketTime(),
+    packetLossCounter(0),
+    pingMs(0) {
     // Initialize network components
+    lastPacketTime.restart();
 }
 
 NetworkManager::~NetworkManager() {
@@ -37,6 +48,25 @@ bool NetworkManager::hostGame(unsigned short port) {
         return false;
     }
 
+    std::cout << "Server started on port " << port << std::endl;
+
+    // For the local IP address
+    auto localIp = sf::IpAddress::getLocalAddress();
+    if (localIp) {
+        std::cout << "Local IP address: " << localIp->toString() << std::endl;
+    }
+    else {
+        std::cout << "Could not determine local IP address" << std::endl;
+    }
+
+    // For the public IP address
+    if (auto publicIp = sf::IpAddress::getPublicAddress(sf::seconds(2))) {
+        std::cout << "Public IP address: " << publicIp->toString() << std::endl;
+    }
+    else {
+        std::cout << "Could not determine public IP address" << std::endl;
+    }
+
     listener.setBlocking(false);
     connected = true;
     return true;
@@ -45,23 +75,44 @@ bool NetworkManager::hostGame(unsigned short port) {
 bool NetworkManager::joinGame(const sf::IpAddress& address, unsigned short port) {
     isHost = false;
 
-    // Connect to the server
-    if (serverConnection.connect(address, port) != sf::Socket::Status::Done) {
-        std::cerr << "Failed to connect to " << address << ":" << port << std::endl;
+    std::cout << "Connecting to " << address.toString() << ":" << port << "..." << std::endl;
+
+    // Set a timeout for connection attempts
+    serverConnection.setBlocking(true);
+    sf::Socket::Status status = serverConnection.connect(address, port, sf::seconds(5));
+    serverConnection.setBlocking(false);
+
+    if (status != sf::Socket::Status::Done) {
+        std::cerr << "Failed to connect to " << address.toString() << ":" << port << std::endl;
         return false;
     }
 
-    serverConnection.setBlocking(false);
+    std::cout << "Successfully connected to server!" << std::endl;
     connected = true;
+    lastPacketTime.restart();
     return true;
 }
 
 void NetworkManager::disconnect() {
+    if (connected) {
+        // Send disconnect message
+        if (!isHost) {
+            sf::Packet disconnectPacket;
+            disconnectPacket << static_cast<uint32_t>(MSG_DISCONNECT);
+            serverConnection.send(disconnectPacket);
+        }
+    }
+
     if (isHost) {
         listener.close();
 
         // Disconnect all clients
         for (auto client : clients) {
+            // Send disconnect message to clients
+            sf::Packet disconnectPacket;
+            disconnectPacket << static_cast<uint32_t>(MSG_DISCONNECT);
+            client->send(disconnectPacket);
+
             client->disconnect();
             delete client;
         }
@@ -72,20 +123,67 @@ void NetworkManager::disconnect() {
     }
 
     connected = false;
+    std::cout << "Disconnected from network" << std::endl;
+}
+
+void NetworkManager::enableRobustNetworking() {
+    // Set non-blocking sockets with timeouts
+    if (isHost) {
+        for (auto* client : clients) {
+            client->setBlocking(false);
+        }
+    }
+    else {
+        serverConnection.setBlocking(false);
+    }
 }
 
 void NetworkManager::update() {
     if (!connected) return;
+
+    // Check for timeouts (5 seconds without data)
+    if (lastPacketTime.getElapsedTime().asSeconds() > 5.0f) {
+        std::cerr << "Connection timed out - no data received for 5 seconds" << std::endl;
+        disconnect();
+        return;
+    }
+
+    // Send heartbeat every second to keep connection alive
+    static sf::Clock heartbeatClock;
+    if (heartbeatClock.getElapsedTime().asSeconds() > 1.0f) {
+        sf::Packet heartbeatPacket;
+        heartbeatPacket << static_cast<uint32_t>(MSG_HEARTBEAT);
+
+        if (isHost) {
+            for (auto client : clients) {
+                client->send(heartbeatPacket);
+            }
+        }
+        else {
+            serverConnection.send(heartbeatPacket);
+        }
+
+        heartbeatClock.restart();
+    }
 
     if (isHost) {
         // Accept new connections
         sf::TcpSocket* newClient = new sf::TcpSocket();
         if (listener.accept(*newClient) == sf::Socket::Status::Done) {
             newClient->setBlocking(false);
+
+            // Log connection info
+            if (auto remoteAddress = newClient->getRemoteAddress()) {
+                std::cout << "New client connecting from: " << remoteAddress->toString() << std::endl;
+            }
+            else {
+                std::cout << "New client connecting from: unknown address" << std::endl;
+            }
+
             clients.push_back(newClient);
 
             // Create a unique ID for the client (use client index + 1 to avoid ID 0)
-            int clientId = clients.size(); // This will be 1 for the first client
+            int clientId = static_cast<int>(clients.size()); // This will be 1 for the first client
 
             // Send acknowledgment with player ID to the client
             sf::Packet idPacket;
@@ -108,8 +206,12 @@ void NetworkManager::update() {
         // Check for messages from clients
         for (size_t i = 0; i < clients.size(); ++i) {
             sf::Packet packet;
-            if (clients[i]->receive(packet) == sf::Socket::Status::Done) {
-                // Parse player input from packet
+            sf::Socket::Status status = clients[i]->receive(packet);
+
+            if (status == sf::Socket::Status::Done) {
+                lastPacketTime.restart();
+
+                // Parse message type
                 uint32_t msgType;
                 packet >> msgType;
 
@@ -129,6 +231,36 @@ void NetworkManager::update() {
                         onPlayerInputReceived(input.playerId, input);
                     }
                 }
+                else if (msgType == MSG_HEARTBEAT) {
+                    // Just a keep-alive, no action needed
+                }
+                else if (msgType == MSG_DISCONNECT) {
+                    std::cout << "Client " << i + 1 << " has disconnected" << std::endl;
+
+                    // Remove the client's player from the game
+                    if (gameServer) {
+                        gameServer->removePlayer(static_cast<int>(i) + 1);
+                    }
+
+                    // Clean up the socket
+                    clients[i]->disconnect();
+                    delete clients[i];
+                    clients.erase(clients.begin() + i);
+                    i--; // Adjust index since we removed an element
+                }
+            }
+            else if (status == sf::Socket::Status::Disconnected) {
+                std::cout << "Client " << i + 1 << " has disconnected" << std::endl;
+
+                // Remove the client's player from the game
+                if (gameServer) {
+                    gameServer->removePlayer(static_cast<int>(i) + 1);
+                }
+
+                // Clean up the socket
+                delete clients[i];
+                clients.erase(clients.begin() + i);
+                i--; // Adjust index since we removed an element
             }
         }
 
@@ -146,7 +278,11 @@ void NetworkManager::update() {
     else {
         // Check for messages from server
         sf::Packet packet;
-        if (serverConnection.receive(packet) == sf::Socket::Status::Done) {
+        sf::Socket::Status status = serverConnection.receive(packet);
+
+        if (status == sf::Socket::Status::Done) {
+            lastPacketTime.restart();
+
             uint32_t msgType;
             packet >> msgType;
 
@@ -159,6 +295,10 @@ void NetworkManager::update() {
                 }
             }
             else if (msgType == MSG_GAME_STATE) {
+                // Measure ping
+                static sf::Clock pingClock;
+                pingMs = pingClock.restart().asMilliseconds();
+
                 // Parse game state from packet
                 GameState state;
                 packet >> state;
@@ -167,6 +307,18 @@ void NetworkManager::update() {
                     onGameStateReceived(state);
                 }
             }
+            else if (msgType == MSG_HEARTBEAT) {
+                // Just a keep-alive, no action needed
+            }
+            else if (msgType == MSG_DISCONNECT) {
+                std::cout << "Disconnected from server" << std::endl;
+                connected = false;
+                serverConnection.disconnect();
+            }
+        }
+        else if (status == sf::Socket::Status::Disconnected) {
+            std::cout << "Lost connection to server" << std::endl;
+            connected = false;
         }
     }
 }
@@ -181,6 +333,7 @@ bool NetworkManager::sendGameState(const GameState& state) {
     for (auto client : clients) {
         if (client->send(packet) != sf::Socket::Status::Done) {
             allSucceeded = false;
+            packetLossCounter++;
         }
     }
 
@@ -193,5 +346,19 @@ bool NetworkManager::sendPlayerInput(const PlayerInput& input) {
     sf::Packet packet;
     packet << static_cast<uint32_t>(MSG_PLAYER_INPUT) << input;
 
-    return (serverConnection.send(packet) == sf::Socket::Status::Done);
+    sf::Socket::Status status = serverConnection.send(packet);
+    if (status != sf::Socket::Status::Done) {
+        packetLossCounter++;
+        return false;
+    }
+
+    return true;
+}
+
+float NetworkManager::getPing() const {
+    return static_cast<float>(pingMs);
+}
+
+int NetworkManager::getPacketLoss() const {
+    return packetLossCounter;
 }
