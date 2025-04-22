@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Network.hpp>
 #include "Planet.h"
 #include "Rocket.h"
 #include "Car.h"
@@ -6,6 +7,11 @@
 #include "GravitySimulator.h"
 #include "GameConstants.h"
 #include "Button.h"
+#include "NetworkManager.h"
+#include "GameServer.h"
+#include "GameClient.h"
+#include "GameState.h"
+#include "PlayerInput.h"
 #include <memory>
 #include <vector>
 #include <cstdint> // For uint8_t
@@ -18,11 +24,23 @@
 #pragma comment(lib, "sfml-graphics-d.lib")
 #pragma comment(lib, "sfml-window-d.lib")
 #pragma comment(lib, "sfml-system-d.lib")
+#pragma comment(lib, "sfml-network-d.lib")
+#pragma comment(lib, "sfml-network-d.lib")
 #else
 #pragma comment(lib, "sfml-graphics.lib")
 #pragma comment(lib, "sfml-window.lib")
 #pragma comment(lib, "sfml-system.lib")
+#pragma comment(lib, "sfml-network.lib")
+#pragma comment(lib, "sfml-network.lib")
 #endif
+
+
+// Global network variables
+NetworkManager networkManager;
+GameServer* gameServer = nullptr;
+GameClient* gameClient = nullptr;
+bool isMultiplayer = false;
+bool isHost = false;
 
 // Define a simple TextPanel class to display information
 class TextPanel {
@@ -104,10 +122,47 @@ float calculatePeriapsis(sf::Vector2f pos, sf::Vector2f vel, float planetMass, f
     return semiMajor * (1 - ecc);
 }
 
-int main()
+// Parse command line arguments for multiplayer setup
+bool parseCommandLine(int argc, char* argv[]) {
+    if (argc < 2) return false;
+
+    std::string mode = argv[1];
+    if (mode == "--host") {
+        isMultiplayer = true;
+        isHost = true;
+        unsigned short port = 5000;
+        if (argc >= 3) {
+            port = static_cast<unsigned short>(std::stoi(argv[2]));
+        }
+        return networkManager.hostGame(port);
+    }
+    else if (mode == "--join") {
+        isMultiplayer = true;
+        isHost = false;
+        if (argc < 3) return false;
+        std::string ip = argv[2];
+        unsigned short port = 5000;
+        if (argc >= 4) {
+            port = static_cast<unsigned short>(std::stoi(argv[3]));
+        }
+        // If joining on localhost
+        return networkManager.joinGame(sf::IpAddress::LocalHost, port);
+    }
+
+    return false;
+}
+
+int main(int argc, char* argv[])
 {
+    // Parse command line arguments for multiplayer mode
+    bool multiplayer = parseCommandLine(argc, argv);
+
     // Create a window with increased size 1280x720
-    sf::RenderWindow window(sf::VideoMode({ 1280, 720 }), "Katie's Space Program");
+    std::string windowTitle = "Katie's Space Program";
+    if (multiplayer) {
+        windowTitle += isHost ? " (Server)" : " (Client)";
+    }
+    sf::RenderWindow window(sf::VideoMode({ 1280, 720 }), windowTitle);
 
     // Create a view for the camera with initial zoom level
     sf::View gameView(sf::Vector2f(640.f, 360.f), sf::Vector2f(1280.f, 720.f));
@@ -162,16 +217,22 @@ int main()
     TextPanel orbitInfoPanel(font, 12, sf::Vector2f(10, 300), sf::Vector2f(250, 100));
     TextPanel controlsPanel(font, 12, sf::Vector2f(10, 410), sf::Vector2f(250, 120));
 
-    // Set controls info
-    controlsPanel.setText(
+    // Set controls info - add multiplayer status if applicable
+    std::string controlsText =
         "CONTROLS:\n"
         "Arrows: Move/Steer\n"
         "1-9: Set thrust level\n"
         "L: Transform vehicle\n"
         "Z: Zoom out\n"
         "X: Auto-zoom\n"
-        "C: Focus planet 2"
-    );
+        "C: Focus planet 2";
+
+    if (multiplayer) {
+        controlsText += "\n\nMULTIPLAYER MODE: ";
+        controlsText += isHost ? "SERVER" : "CLIENT";
+    }
+
+    controlsPanel.setText(controlsText);
 
     // Gravitational constant - same as in GravitySimulator
     const float G = GameConstants::G;  // Use the constant from the header
@@ -181,46 +242,101 @@ int main()
 
     // Clock for tracking time between frames
     sf::Clock clock;
-    // Create game objects - main planet in the center (pinned in place)
-    Planet planet(sf::Vector2f(GameConstants::MAIN_PLANET_X, GameConstants::MAIN_PLANET_Y),
-        0, GameConstants::MAIN_PLANET_MASS, sf::Color::Blue);
-    // Set zero velocity to ensure it stays in place
-    planet.setVelocity(sf::Vector2f(0.f, 0.f));
 
-    // Create a second planet - position it using the calculated position
-    Planet planet2(sf::Vector2f(GameConstants::SECONDARY_PLANET_X, GameConstants::SECONDARY_PLANET_Y),
-        0, GameConstants::SECONDARY_PLANET_MASS, sf::Color::Green);
-    // Set the pre-calculated orbital velocity for a circular orbit
-    planet2.setVelocity(sf::Vector2f(0.f, GameConstants::SECONDARY_PLANET_ORBITAL_VELOCITY));
-    // Calculate proper orbital velocity for circular orbit using the constant distance
-    // Using Kepler's laws: v = sqrt(G*M/r)
-    float orbitSpeed = std::sqrt(GameConstants::G * planet.getMass() / GameConstants::PLANET_ORBIT_DISTANCE);
+    // Setup multiplayer components
+    if (multiplayer) {
+        if (isHost) {
+            gameServer = new GameServer();
+            gameServer->initialize();
 
-    // Setting velocity perpendicular to the radial direction
-    planet2.setVelocity(sf::Vector2f(0.f, orbitSpeed));
+            // Setup callback to handle player input
+            networkManager.onPlayerInputReceived = [](int clientId, const PlayerInput& input) {
+                if (gameServer) {
+                    gameServer->handlePlayerInput(input.playerId, input);
+                }
+                };
+        }
+        else {
+            gameClient = new GameClient();
+            gameClient->initialize();
 
-    // Create vector of planets
+            // Setup callback to handle game state updates
+            networkManager.onGameStateReceived = [](const GameState& state) {
+                if (gameClient) {
+                    gameClient->processGameState(state);
+                }
+                };
+        }
+    }
+
+    // Reference to the active vehicle manager (either from server/client or local)
+    VehicleManager* activeVehicleManager = nullptr;
     std::vector<Planet*> planets;
-    planets.push_back(&planet);
-    planets.push_back(&planet2);
 
-    // Calculate position on the first planet's edge - start at the top
-    sf::Vector2f planetPos = planet.getPosition();
-    float planetRadius = planet.getRadius();
-    float rocketSize = GameConstants::ROCKET_SIZE; // Approximate rocket size
+    // Setup game objects based on multiplayer mode
+    if (multiplayer) {
+        if (isHost) {
+            // Server creates and manages the game state
+            planets = gameServer->getPlanets();
 
-    // Direction vector pointing from planet center to the top (0, -1)
-    sf::Vector2f direction(0, -1);
-    sf::Vector2f rocketPos = planetPos + direction * (planetRadius + rocketSize);
+            // Create a player for the server
+            int localPlayerId = gameServer->addPlayer(
+                planets[0]->getPosition() + sf::Vector2f(0, -(planets[0]->getRadius() + GameConstants::ROCKET_SIZE)),
+                sf::Color::White);
 
-    // Create vehicle manager with initial position
-    VehicleManager vehicleManager(rocketPos, planets);
+            activeVehicleManager = gameServer->getPlayer(localPlayerId);
+        }
+        else {
+            // Client receives game state from server
+            gameClient->setLocalPlayerId(1); // Temporary ID until server assigns one
+            planets = gameClient->getPlanets();
+            activeVehicleManager = gameClient->getLocalPlayer();
+        }
+    }
+    else {
+        // Single player mode - create planets directly
+        // Create game objects - main planet in the center (pinned in place)
+        Planet* planet = new Planet(sf::Vector2f(GameConstants::MAIN_PLANET_X, GameConstants::MAIN_PLANET_Y),
+            0, GameConstants::MAIN_PLANET_MASS, sf::Color::Blue);
+        // Set zero velocity to ensure it stays in place
+        planet->setVelocity(sf::Vector2f(0.f, 0.f));
+
+        // Create a second planet - position it using the calculated position
+        Planet* planet2 = new Planet(sf::Vector2f(GameConstants::SECONDARY_PLANET_X, GameConstants::SECONDARY_PLANET_Y),
+            0, GameConstants::SECONDARY_PLANET_MASS, sf::Color::Green);
+        // Set the pre-calculated orbital velocity for a circular orbit
+        planet2->setVelocity(sf::Vector2f(0.f, GameConstants::SECONDARY_PLANET_ORBITAL_VELOCITY));
+
+        // Calculate proper orbital velocity for circular orbit using the constant distance
+        // Using Kepler's laws: v = sqrt(G*M/r)
+        float orbitSpeed = std::sqrt(GameConstants::G * planet->getMass() / GameConstants::PLANET_ORBIT_DISTANCE);
+
+        // Setting velocity perpendicular to the radial direction
+        planet2->setVelocity(sf::Vector2f(0.f, orbitSpeed));
+
+        // Add planets to the list
+        planets.push_back(planet);
+        planets.push_back(planet2);
+
+        // Calculate position on the first planet's edge - start at the top
+        sf::Vector2f planetPos = planet->getPosition();
+        float planetRadius = planet->getRadius();
+        float rocketSize = GameConstants::ROCKET_SIZE; // Approximate rocket size
+
+        // Direction vector pointing from planet center to the top (0, -1)
+        sf::Vector2f direction(0, -1);
+        sf::Vector2f rocketPos = planetPos + direction * (planetRadius + rocketSize);
+
+        // Create vehicle manager with initial position
+        activeVehicleManager = new VehicleManager(rocketPos, planets);
+    }
 
     // Set up gravity simulator
     GravitySimulator gravitySimulator;
-    gravitySimulator.addPlanet(&planet);
-    gravitySimulator.addPlanet(&planet2);
-    gravitySimulator.addVehicleManager(&vehicleManager);
+    for (auto planet : planets) {
+        gravitySimulator.addPlanet(planet);
+    }
+    gravitySimulator.addVehicleManager(activeVehicleManager);
 
     // Track L key state to prevent repeated transformations
     bool lKeyPressed = false;
@@ -230,6 +346,30 @@ int main()
     {
         // Calculate delta time
         float deltaTime = std::min(clock.restart().asSeconds(), 0.1f);
+
+        // Update network state for multiplayer
+        if (multiplayer) {
+            networkManager.update();
+
+            if (isHost) {
+                // Update server simulation
+                gameServer->update(deltaTime);
+
+                // Send updated game state to clients
+                GameState state = gameServer->getGameState();
+                networkManager.sendGameState(state);
+            }
+            else {
+                // Gather input
+                PlayerInput input = gameClient->getLocalPlayerInput(deltaTime);
+
+                // Send input to server
+                networkManager.sendPlayerInput(input);
+
+                // Update client prediction
+                gameClient->update(deltaTime);
+            }
+        }
 
         // Check for events
         if (std::optional<sf::Event> event = window.pollEvent())
@@ -271,7 +411,6 @@ int main()
                 const auto* mouseEvent = event->getIf<sf::Event::MouseButtonPressed>();
                 if (mouseEvent && mouseEvent->button == sf::Mouse::Button::Left)
                 {
-
                     // Important: temporarily set UI view before checking button clicks
                     window.setView(uiView);
 
@@ -312,7 +451,7 @@ int main()
                     {
                         // Transform between rocket and car
                         lKeyPressed = true;
-                        vehicleManager.switchVehicle();
+                        activeVehicleManager->switchVehicle();
                     }
                 }
             }
@@ -327,77 +466,83 @@ int main()
             }
         }
 
-        // Handle continuous key presses for thrust level
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1))
-            vehicleManager.getRocket()->setThrustLevel(0.1f);
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2))
-            vehicleManager.getRocket()->setThrustLevel(0.2f);
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num3))
-            vehicleManager.getRocket()->setThrustLevel(0.3f);
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num4))
-            vehicleManager.getRocket()->setThrustLevel(0.4f);
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num5))
-            vehicleManager.getRocket()->setThrustLevel(0.5f);
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num6))
-            vehicleManager.getRocket()->setThrustLevel(0.6f);
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num7))
-            vehicleManager.getRocket()->setThrustLevel(0.7f);
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num8))
-            vehicleManager.getRocket()->setThrustLevel(0.8f);
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num9))
-            vehicleManager.getRocket()->setThrustLevel(0.9f);
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num0))
-            vehicleManager.getRocket()->setThrustLevel(0.0f);
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Equal)) // = key
-            vehicleManager.getRocket()->setThrustLevel(1.0f);
+        // In multiplayer client mode, don't handle input here as it's sent to the server
+        if (!multiplayer || isHost) {
+            // Handle continuous key presses for thrust level
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1))
+                activeVehicleManager->getRocket()->setThrustLevel(0.1f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2))
+                activeVehicleManager->getRocket()->setThrustLevel(0.2f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num3))
+                activeVehicleManager->getRocket()->setThrustLevel(0.3f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num4))
+                activeVehicleManager->getRocket()->setThrustLevel(0.4f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num5))
+                activeVehicleManager->getRocket()->setThrustLevel(0.5f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num6))
+                activeVehicleManager->getRocket()->setThrustLevel(0.6f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num7))
+                activeVehicleManager->getRocket()->setThrustLevel(0.7f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num8))
+                activeVehicleManager->getRocket()->setThrustLevel(0.8f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num9))
+                activeVehicleManager->getRocket()->setThrustLevel(0.9f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num0))
+                activeVehicleManager->getRocket()->setThrustLevel(0.0f);
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Equal)) // = key
+                activeVehicleManager->getRocket()->setThrustLevel(1.0f);
 
-        // Apply thrust and rotation
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
-            vehicleManager.applyThrust(1.0f);
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
-            vehicleManager.applyThrust(-0.5f); // Brake/reverse
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-            vehicleManager.rotate(-6.0f * deltaTime * 60.0f);
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-            vehicleManager.rotate(6.0f * deltaTime * 60.0f);
+            // Apply thrust and rotation
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+                activeVehicleManager->applyThrust(1.0f);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
+                activeVehicleManager->applyThrust(-0.5f); // Brake/reverse
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+                activeVehicleManager->rotate(-6.0f * deltaTime * 60.0f);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+                activeVehicleManager->rotate(6.0f * deltaTime * 60.0f);
+        }
 
         // Camera control keys
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
             // Gradually increase zoom to see more of the system
             targetZoom = std::min(maxZoom, targetZoom * 1.05f); // Increase by 5% each frame
             // Focus on active vehicle
-            gameView.setCenter(vehicleManager.getActiveVehicle()->getPosition());
+            gameView.setCenter(activeVehicleManager->getActiveVehicle()->getPosition());
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X)) {
             // Follow the active vehicle - calculate distances manually
             float dist1 = std::sqrt(
-                std::pow(vehicleManager.getActiveVehicle()->getPosition().x - planet.getPosition().x, 2) +
-                std::pow(vehicleManager.getActiveVehicle()->getPosition().y - planet.getPosition().y, 2)
+                std::pow(activeVehicleManager->getActiveVehicle()->getPosition().x - planets[0]->getPosition().x, 2) +
+                std::pow(activeVehicleManager->getActiveVehicle()->getPosition().y - planets[0]->getPosition().y, 2)
             );
             float dist2 = std::sqrt(
-                std::pow(vehicleManager.getActiveVehicle()->getPosition().x - planet2.getPosition().x, 2) +
-                std::pow(vehicleManager.getActiveVehicle()->getPosition().y - planet2.getPosition().y, 2)
+                std::pow(activeVehicleManager->getActiveVehicle()->getPosition().x - planets[1]->getPosition().x, 2) +
+                std::pow(activeVehicleManager->getActiveVehicle()->getPosition().y - planets[1]->getPosition().y, 2)
             );
-            targetZoom = minZoom + (std::min(dist1, dist2) - (planet.getRadius() + GameConstants::ROCKET_SIZE)) / 100.0f;
-            gameView.setCenter(vehicleManager.getActiveVehicle()->getPosition());
+            targetZoom = minZoom + (std::min(dist1, dist2) - (planets[0]->getRadius() + GameConstants::ROCKET_SIZE)) / 100.0f;
+            gameView.setCenter(activeVehicleManager->getActiveVehicle()->getPosition());
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C)) {
             // Follow planet 2
             targetZoom = 10.0f;
-            gameView.setCenter(planet2.getPosition());
+            gameView.setCenter(planets[1]->getPosition());
         }
 
-        // Update simulation
-        gravitySimulator.update(deltaTime);
-        planet.update(deltaTime);
-        planet2.update(deltaTime);
-        vehicleManager.update(deltaTime);
+        // Update simulation if not in multiplayer client mode
+        if (!multiplayer || isHost) {
+            gravitySimulator.update(deltaTime);
+            for (auto planet : planets) {
+                planet->update(deltaTime);
+            }
+            activeVehicleManager->update(deltaTime);
+        }
 
         // Calculate distance from vehicle to closest planet for zoom
-        sf::Vector2f vehiclePos = vehicleManager.getActiveVehicle()->getPosition();
-        sf::Vector2f vehicleToPlanet = planet.getPosition() - vehiclePos;
-        sf::Vector2f vehicleToPlanet2 = planet2.getPosition() - vehiclePos;
-        float distance1 = std::sqrt(vehicleToPlanet.x * vehicleToPlanet.x + vehicleToPlanet.y * vehicleToPlanet.y);
+        sf::Vector2f vehiclePos = activeVehicleManager->getActiveVehicle()->getPosition();
+        sf::Vector2f vehicleToPlanet1 = planets[0]->getPosition() - vehiclePos;
+        sf::Vector2f vehicleToPlanet2 = planets[1]->getPosition() - vehiclePos;
+        float distance1 = std::sqrt(vehicleToPlanet1.x * vehicleToPlanet1.x + vehicleToPlanet1.y * vehicleToPlanet1.y);
         float distance2 = std::sqrt(vehicleToPlanet2.x * vehicleToPlanet2.x + vehicleToPlanet2.y * vehicleToPlanet2.y);
 
         // Use closest planet for zoom calculation (if not manually zooming)
@@ -405,7 +550,7 @@ int main()
             !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) &&
             !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C)) {
             float closest = std::min(distance1, distance2);
-            targetZoom = minZoom + (closest - (planet.getRadius() + GameConstants::ROCKET_SIZE)) / 100.0f;
+            targetZoom = minZoom + (closest - (planets[0]->getRadius() + GameConstants::ROCKET_SIZE)) / 100.0f;
             targetZoom = std::max(minZoom, std::min(targetZoom, maxZoom));
 
             // Update view center to follow vehicle
@@ -424,12 +569,12 @@ int main()
         // Clear window with black background
         window.clear(sf::Color::Black);
 
-        // Draw orbit paths// Find the closest planet to the rocket
+        // Find the closest planet to the rocket
         Planet* closestPlanet = nullptr;
         float closestDistance = std::numeric_limits<float>::max();
-        sf::Vector2f rocketPos = vehicleManager.getActiveVehicle()->getPosition();
+        sf::Vector2f rocketPos = activeVehicleManager->getActiveVehicle()->getPosition();
 
-        for (auto& planetPtr : gravitySimulator.getPlanets()) {
+        for (auto& planetPtr : planets) {
             sf::Vector2f direction = planetPtr->getPosition() - rocketPos;
             float dist = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
@@ -441,29 +586,47 @@ int main()
 
         // Draw orbit path only for the closest planet
         if (closestPlanet) {
-            closestPlanet->drawOrbitPath(window, gravitySimulator.getPlanets());
+            closestPlanet->drawOrbitPath(window, planets);
         }
 
         // Draw trajectory only if in rocket mode
-        if (vehicleManager.getActiveVehicleType() == VehicleType::ROCKET) {
-            vehicleManager.getRocket()->drawTrajectory(window, gravitySimulator.getPlanets(), GameConstants::TRAJECTORY_TIME_STEP, GameConstants::TRAJECTORY_STEPS, false);
+        if (activeVehicleManager->getActiveVehicleType() == VehicleType::ROCKET) {
+            activeVehicleManager->getRocket()->drawTrajectory(window, planets,
+                GameConstants::TRAJECTORY_TIME_STEP, GameConstants::TRAJECTORY_STEPS, false);
         }
 
         // Draw objects
-        planet.draw(window);
-        planet2.draw(window);
-        vehicleManager.drawWithConstantSize(window, zoomLevel);
+        for (auto planet : planets) {
+            planet->draw(window);
+            planet->drawVelocityVector(window, 5.0f);
+        }
 
-        // Draw velocity vectors
-        planet.drawVelocityVector(window, 5.0f);
-        planet2.drawVelocityVector(window, 5.0f);
+        // Draw the active vehicle
+        activeVehicleManager->drawWithConstantSize(window, zoomLevel);
+        // Draw remote vehicles in multiplayer mode
+        if (multiplayer) {
+            if (isHost) {
+                // Draw all player vehicles from the server
+                for (const auto& pair : gameServer->getPlayers()) {
+                    if (pair.second != activeVehicleManager) {
+                        pair.second->drawWithConstantSize(window, zoomLevel);
+                    }
+                }
+            }
+            else {
+                // Draw remote player vehicles from the client
+                for (const auto& player : gameClient->getRemotePlayers()) {
+                    player.second->drawWithConstantSize(window, zoomLevel);
+                }
+            }
+        }
 
         // Draw velocity vector only if in rocket mode
-        if (vehicleManager.getActiveVehicleType() == VehicleType::ROCKET) {
-            vehicleManager.drawVelocityVector(window, 2.0f);
+        if (activeVehicleManager->getActiveVehicleType() == VehicleType::ROCKET) {
+            activeVehicleManager->drawVelocityVector(window, 2.0f);
 
             // Draw gravity force vectors only in rocket mode
-            vehicleManager.getRocket()->drawGravityForceVectors(window, gravitySimulator.getPlanets(), GameConstants::GRAVITY_VECTOR_SCALE);
+            activeVehicleManager->getRocket()->drawGravityForceVectors(window, planets, GameConstants::GRAVITY_VECTOR_SCALE);
         }
 
         // Update info panels with current data
@@ -471,8 +634,8 @@ int main()
         // 1. Vehicle information
         {
             std::stringstream ss;
-            if (vehicleManager.getActiveVehicleType() == VehicleType::ROCKET) {
-                Rocket* rocket = vehicleManager.getRocket();
+            if (activeVehicleManager->getActiveVehicleType() == VehicleType::ROCKET) {
+                Rocket* rocket = activeVehicleManager->getRocket();
                 float speed = std::sqrt(rocket->getVelocity().x * rocket->getVelocity().x +
                     rocket->getVelocity().y * rocket->getVelocity().y);
 
@@ -485,7 +648,7 @@ int main()
                 // Calculate total gravity force from all planets
                 float totalForce = 0.0f;
 
-                for (const auto& planetPtr : gravitySimulator.getPlanets()) {
+                for (const auto& planetPtr : planets) {
                     sf::Vector2f direction = planetPtr->getPosition() - rocket->getPosition();
                     float dist = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
@@ -493,7 +656,7 @@ int main()
                     totalForce += forceMagnitude;
 
                     // Label planets by color for clarity
-                    std::string planetName = (planetPtr == &planet) ? "Blue Planet" : "Green Planet";
+                    std::string planetName = (planetPtr == planets[0]) ? "Blue Planet" : "Green Planet";
                     ss << "Force from " << planetName
                         << ": " << std::setprecision(0) << forceMagnitude << " units\n";
                 }
@@ -501,7 +664,7 @@ int main()
                 ss << "Total gravity force: " << std::setprecision(0) << totalForce << " units";
             }
             else {
-                Car* car = vehicleManager.getCar();
+                Car* car = activeVehicleManager->getCar();
                 ss << "CAR INFO\n"
                     << "On Ground: " << (car->isOnGround() ? "Yes" : "No") << "\n"
                     << "Position: (" << std::fixed << std::setprecision(1)
@@ -517,9 +680,8 @@ int main()
             std::stringstream ss;
             Planet* closestPlanet = nullptr;
             float closestDistance = std::numeric_limits<float>::max();
-            GameObject* activeVehicle = vehicleManager.getActiveVehicle();
-
-            for (const auto& planetPtr : gravitySimulator.getPlanets()) {
+            GameObject* activeVehicle = activeVehicleManager->getActiveVehicle();
+            for (const auto& planetPtr : planets) {
                 sf::Vector2f direction = planetPtr->getPosition() - activeVehicle->getPosition();
                 float dist = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
@@ -530,7 +692,7 @@ int main()
             }
 
             if (closestPlanet) {
-                std::string planetName = (closestPlanet == &planet) ? "Blue Planet" : "Green Planet";
+                std::string planetName = (closestPlanet == planets[0]) ? "Blue Planet" : "Green Planet";
                 float speed = std::sqrt(closestPlanet->getVelocity().x * closestPlanet->getVelocity().x +
                     closestPlanet->getVelocity().y * closestPlanet->getVelocity().y);
 
@@ -550,13 +712,13 @@ int main()
         {
             std::stringstream ss;
 
-            if (vehicleManager.getActiveVehicleType() == VehicleType::ROCKET) {
-                Rocket* rocket = vehicleManager.getRocket();
+            if (activeVehicleManager->getActiveVehicleType() == VehicleType::ROCKET) {
+                Rocket* rocket = activeVehicleManager->getRocket();
                 Planet* primaryBody = nullptr;
                 float strongestGravity = 0.0f;
 
                 // Find the primary gravitational body (usually the closest one)
-                for (const auto& planetPtr : gravitySimulator.getPlanets()) {
+                for (const auto& planetPtr : planets) {
                     sf::Vector2f direction = planetPtr->getPosition() - rocket->getPosition();
                     float dist = std::sqrt(direction.x * direction.x + direction.y * direction.y);
 
@@ -582,14 +744,14 @@ int main()
                     // Check if orbit is valid (not hyperbolic)
                     if (periapsis > 0 && apoapsis > 0) {
                         ss << "ORBIT INFO\n"
-                            << "Primary: " << (primaryBody == &planet ? "Blue Planet" : "Green Planet") << "\n"
+                            << "Primary: " << (primaryBody == planets[0] ? "Blue Planet" : "Green Planet") << "\n"
                             << "Periapsis: " << std::fixed << std::setprecision(0) << periapsis << " units\n"
                             << "Apoapsis: " << std::setprecision(0) << apoapsis << " units\n"
                             << "Current dist: " << std::setprecision(0) << distance << " units";
                     }
                     else {
                         ss << "ORBIT INFO\n"
-                            << "Primary: " << (primaryBody == &planet ? "Blue Planet" : "Green Planet") << "\n"
+                            << "Primary: " << (primaryBody == planets[0] ? "Blue Planet" : "Green Planet") << "\n"
                             << "Orbit: Escape trajectory\n"
                             << "Current dist: " << std::fixed << std::setprecision(0) << distance << " units";
                     }
@@ -606,8 +768,8 @@ int main()
 
         // 4. Thrust metrics panel content (prepare the content but don't draw yet)
         TextPanel thrustMetricsPanel(font, 12, sf::Vector2f(10, 530), sf::Vector2f(250, 80));
-        if (vehicleManager.getActiveVehicleType() == VehicleType::ROCKET) {
-            Rocket* rocket = vehicleManager.getRocket();
+        if (activeVehicleManager->getActiveVehicleType() == VehicleType::ROCKET) {
+            Rocket* rocket = activeVehicleManager->getRocket();
             sf::Vector2f rocketPos = rocket->getPosition();
 
             // Calculate the closest planet for gravity reference
@@ -672,6 +834,27 @@ int main()
             thrustMetricsPanel.setText("THRUST METRICS\nNot available in car mode");
         }
 
+        // Add multiplayer info panel
+        TextPanel multiplayerPanel(font, 12, sf::Vector2f(10, 620), sf::Vector2f(250, 90));
+        if (multiplayer) {
+            std::stringstream ss;
+            ss << "MULTIPLAYER STATUS\n";
+            ss << "Mode: " << (isHost ? "Host" : "Client") << "\n";
+
+            if (isHost && gameServer) {
+                ss << "Connected clients: " << (gameServer->getPlayers().size() - 1) << "\n";
+            }
+            else {
+                ss << "Connected to server: " << (networkManager.isConnected() ? "Yes" : "No") << "\n";
+                ss << "Local player ID: " << gameClient->getLocalPlayerId() << "\n";
+                ss << "Remote players: " << gameClient->getRemotePlayers().size() << "\n";
+            }
+            multiplayerPanel.setText(ss.str());
+        }
+        else {
+            multiplayerPanel.setText("SINGLE PLAYER MODE\nPress ESC to exit");
+        }
+
         // Now switch to UI view for drawing all panels
         window.setView(uiView);
 
@@ -681,6 +864,9 @@ int main()
         orbitInfoPanel.draw(window);
         controlsPanel.draw(window);
         thrustMetricsPanel.draw(window);
+        if (multiplayer) {
+            multiplayerPanel.draw(window);
+        }
 
         // Update and draw buttons
         sf::Vector2f mousePos = window.mapPixelToCoords(
@@ -692,7 +878,21 @@ int main()
 
         // Display what was drawn
         window.display();
-    }
+   }
 
-    return 0;
+   // Cleanup
+   if (!multiplayer) {
+       // In single player mode, clean up our own objects
+       delete activeVehicleManager;
+       for (auto planet : planets) {
+           delete planet;
+       }
+   }
+   else {
+       // In multiplayer mode, clean up server/client
+       delete gameServer;
+       delete gameClient;
+   }
+
+   return 0;
 }

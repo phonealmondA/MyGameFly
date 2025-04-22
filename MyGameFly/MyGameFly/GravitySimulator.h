@@ -27,4 +27,6 @@ public:
 
     const std::vector<Planet*>& getPlanets() const { return planets; }
     void setSimulatePlanetGravity(bool enable) { simulatePlanetGravity = enable; }
+
+    void removeVehicleManager(VehicleManager* manager) {if (vehicleManager == manager) {vehicleManager = nullptr; }}
 };

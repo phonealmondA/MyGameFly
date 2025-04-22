@@ -49,4 +49,9 @@ public:
     float getThrustLevel() const { return thrustLevel; }
     const std::vector<std::unique_ptr<RocketPart>>& getParts() const { return parts; }
     float getRotation() const { return rotation; }
+    void setRotation(float rot) { rotation = rot; }
+
+    void setColor(sf::Color col) { color = col; }
+    sf::Color getColor() const { return color; }
+
 };

@@ -30,8 +30,8 @@ public:
     void applyThrust(float amount);
     void rotate(float amount);
     void drawVelocityVector(sf::RenderWindow& window, float scale = 1.0f);
-
     Rocket* getRocket() { return rocket.get(); }
+    Rocket* getRocket() const { return rocket.get(); }
     Car* getCar() { return car.get(); }
     GameObject* getActiveVehicle();
     VehicleType getActiveVehicleType() const { return activeVehicle; }

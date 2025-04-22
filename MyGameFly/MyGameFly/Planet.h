@@ -10,9 +10,13 @@ private:
 
 public:
     Planet(sf::Vector2f pos, float radius, float mass, sf::Color color = sf::Color::Blue);
-
+    void setPosition(const sf::Vector2f& pos) { position = pos; }
+    sf::Color getColor() const { return color; }
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) override;
+
+    // Add to Planet.h public section
+
 
     float getMass() const;
     float getRadius() const;
@@ -26,4 +30,5 @@ public:
 
     // Draw predicted orbit path
     void drawOrbitPath(sf::RenderWindow& window, const std::vector<Planet*>& planets, float timeStep = 0.5f, int steps = 200);
+
 };

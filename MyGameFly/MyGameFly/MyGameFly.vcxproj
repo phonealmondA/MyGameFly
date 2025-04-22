@@ -140,9 +140,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GameClient.cpp" />
+    <ClCompile Include="GameServer.cpp" />
+    <ClCompile Include="GameState.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="NetworkManager.cpp" />
     <ClCompile Include="Planet.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="PlayerInput.cpp" />
     <ClCompile Include="RocketPart.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Rocket.cpp" />
@@ -152,12 +157,17 @@
     <ClCompile Include="VehicleManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GameClient.h" />
     <ClInclude Include="GameConstants.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="GameServer.h" />
+    <ClInclude Include="GameState.h" />
     <ClInclude Include="GravitySimulator.h" />
     <ClInclude Include="Button.h" />
     <ClInclude Include="Car.h" />
+    <ClInclude Include="NetworkManager.h" />
+    <ClInclude Include="PlayerInput.h" />
     <ClInclude Include="VectorHelper.h" />
     <ClInclude Include="Rocket.h" />
     <ClInclude Include="RocketPart.h" />
