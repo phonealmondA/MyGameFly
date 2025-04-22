@@ -24,7 +24,7 @@ public:
     void handlePlayerInput(int playerId, const PlayerInput& input);
     GameState getGameState() const;
 
-    int addPlayer(sf::Vector2f initialPos, sf::Color color = sf::Color::White);
+    int addPlayer(int playerId, sf::Vector2f initialPos, sf::Color color = sf::Color::White);
     void removePlayer(int playerId);
 
     const std::vector<Planet*>& getPlanets() const { return planets; }

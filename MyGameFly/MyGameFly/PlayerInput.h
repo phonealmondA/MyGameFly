@@ -23,7 +23,7 @@ struct PlayerInput {
     friend sf::Packet& operator >>(sf::Packet& packet, PlayerInput& input);
 };
 
-// Implement serialization
+// Option 1: Keep the implementations in the header as inline
 inline sf::Packet& operator <<(sf::Packet& packet, const PlayerInput& input) {
     return packet << input.playerId
         << input.thrustForward << input.thrustBackward

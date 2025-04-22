@@ -7,6 +7,10 @@
 #include "GameState.h"
 #include "PlayerInput.h"
 
+// Forward declarations
+class GameServer;
+class GameClient;
+
 class NetworkManager {
 private:
     bool isHost;
@@ -16,9 +20,17 @@ private:
     unsigned short port;
     bool connected;
 
+    // References to game components
+    GameServer* gameServer;
+    GameClient* gameClient;
+
 public:
     NetworkManager();
     ~NetworkManager();
+
+    // Set references to game components
+    void setGameServer(GameServer* server);
+    void setGameClient(GameClient* client);
 
     bool hostGame(unsigned short port);
     bool joinGame(const sf::IpAddress& address, unsigned short port);
@@ -30,8 +42,6 @@ public:
     bool isConnected() const { return connected; }
     bool getIsHost() const { return isHost; }
 
-    // Callbacks to be set by the game
-    
     // Callbacks to be set by the game
     std::function<void(int clientId, const PlayerInput&)> onPlayerInputReceived;
     std::function<void(const GameState&)> onGameStateReceived;

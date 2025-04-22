@@ -77,7 +77,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\MyGameFly\SFML-3.0.0-windows-vc17-64-bit\SFML-3.0.0\lib;$(LibraryPath)</LibraryPath>
-    <OutDir>C:\Users\phone\Desktop\katieFly\vr 2</OutDir>
+    <OutDir>C:\Users\phone\Desktop\katieFly\vr 3</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -147,7 +147,6 @@
     <ClCompile Include="NetworkManager.cpp" />
     <ClCompile Include="Planet.cpp" />
     <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="PlayerInput.cpp" />
     <ClCompile Include="RocketPart.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Rocket.cpp" />

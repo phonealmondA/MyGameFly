@@ -1,6 +1,7 @@
 // GameClient.cpp
 #include "GameClient.h"
 #include "GameConstants.h"
+#include "VectorHelper.h"
 
 GameClient::GameClient() : localPlayer(nullptr), localPlayerId(0), stateTimestamp(0.0f) {
 }
@@ -92,32 +93,48 @@ void GameClient::processGameState(const GameState& state) {
 
     // Process rockets
     for (const auto& rocketState : state.rockets) {
-        // Skip local player's rocket
         if (rocketState.playerId == localPlayerId) {
-            continue;
-        }
-
-        // Get or create vehicle manager for this player
-        auto it = remotePlayers.find(rocketState.playerId);
-        VehicleManager* manager = nullptr;
-
-        if (it == remotePlayers.end()) {
-            // Create a new remote player
-            manager = new VehicleManager(rocketState.position, planets);
-            remotePlayers[rocketState.playerId] = manager;
-            simulator.addVehicleManager(manager);
+            // This is our local player, update position for prediction correction
+            if (localPlayer) {
+                // Only update position if difference is significant
+                // to avoid jerky movement (client-side prediction)
+                sf::Vector2f posDiff = rocketState.position - localPlayer->getRocket()->getPosition();
+                float distance = std::sqrt(posDiff.x * posDiff.x + posDiff.y * posDiff.y);
+                if (distance > 10.0f) {
+                    localPlayer->getRocket()->setPosition(rocketState.position);
+                }
+            }
         }
         else {
-            manager = it->second;
-        }
+            // Get or create vehicle manager for this player
+            auto it = remotePlayers.find(rocketState.playerId);
+            VehicleManager* manager = nullptr;
 
-        // Update rocket state
-        Rocket* rocket = manager->getRocket();
-        rocket->setPosition(rocketState.position);
-        rocket->setVelocity(rocketState.velocity);
-        rocket->setRotation(rocketState.rotation);
-        rocket->setThrustLevel(rocketState.thrustLevel);
-        // Note: mass and color are usually not changed frequently
+            if (it == remotePlayers.end()) {
+                // Create a new remote player
+                manager = new VehicleManager(rocketState.position, planets);
+                remotePlayers[rocketState.playerId] = manager;
+                simulator.addVehicleManager(manager);
+
+                // Set color based on player ID
+                manager->getRocket()->setColor(sf::Color(
+                    100 + (rocketState.playerId * 50) % 155,
+                    100 + (rocketState.playerId * 30) % 155,
+                    100 + (rocketState.playerId * 70) % 155
+                ));
+            }
+            else {
+                manager = it->second;
+            }
+
+            // Update rocket state
+            Rocket* rocket = manager->getRocket();
+            rocket->setPosition(rocketState.position);
+            rocket->setVelocity(rocketState.velocity);
+            rocket->setRotation(rocketState.rotation);
+            rocket->setThrustLevel(rocketState.thrustLevel);
+            // Note: mass and color are usually not changed frequently
+        }
     }
 }
 

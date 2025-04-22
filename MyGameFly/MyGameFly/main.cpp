@@ -243,32 +243,46 @@ int main(int argc, char* argv[])
     // Clock for tracking time between frames
     sf::Clock clock;
 
-    // Setup multiplayer components
-    if (multiplayer) {
-        if (isHost) {
-            gameServer = new GameServer();
-            gameServer->initialize();
+    // Setup multiplayer components// In main() function, after parsing command-line arguments:
 
-            // Setup callback to handle player input
-            networkManager.onPlayerInputReceived = [](int clientId, const PlayerInput& input) {
-                if (gameServer) {
-                    gameServer->handlePlayerInput(input.playerId, input);
-                }
-                };
-        }
-        else {
-            gameClient = new GameClient();
-            gameClient->initialize();
+// Setup multiplayer componentsif (multiplayer) {
+    if (isHost) {
+        gameServer = new GameServer();
+        gameServer->initialize();
 
-            // Setup callback to handle game state updates
-            networkManager.onGameStateReceived = [](const GameState& state) {
-                if (gameClient) {
-                    gameClient->processGameState(state);
-                }
-                };
-        }
+        // Connect NetworkManager with GameServer
+        networkManager.setGameServer(gameServer);
+
+        // Create a player for the server with ID 0
+        int localPlayerId = gameServer->addPlayer(0,
+            planets[0]->getPosition() + sf::Vector2f(0, -(planets[0]->getRadius() + GameConstants::ROCKET_SIZE)),
+            sf::Color::White);
+
+        activeVehicleManager = gameServer->getPlayer(localPlayerId);
+
+        // Setup callback to handle player input
+        networkManager.onPlayerInputReceived = [](int clientId, const PlayerInput& input) {
+            if (gameServer) {
+                // Use the clientId directly instead of input.playerId
+                gameServer->handlePlayerInput(clientId, input);
+            }
+            };
     }
+    else {
+        gameClient = new GameClient();
+        gameClient->initialize();
 
+        // Connect NetworkManager with GameClient
+        networkManager.setGameClient(gameClient);
+
+        // Setup callback to handle game state updates
+        networkManager.onGameStateReceived = [](const GameState& state) {
+            if (gameClient) {
+                gameClient->processGameState(state);
+            }
+            };
+    }
+}
     // Reference to the active vehicle manager (either from server/client or local)
     VehicleManager* activeVehicleManager = nullptr;
     std::vector<Planet*> planets;

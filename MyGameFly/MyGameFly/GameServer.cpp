@@ -41,11 +41,10 @@ void GameServer::initialize() {
     }
 }
 
-int GameServer::addPlayer(sf::Vector2f initialPos, sf::Color color) {
-    // Find an available player ID
-    int playerId = 1;
-    while (players.find(playerId) != players.end()) {
-        playerId++;
+int GameServer::addPlayer(int playerId, sf::Vector2f initialPos, sf::Color color) {
+    // Check if player already exists
+    if (players.find(playerId) != players.end()) {
+        return playerId; // Player already exists
     }
 
     // Create a new vehicle manager for this player
@@ -58,6 +57,7 @@ int GameServer::addPlayer(sf::Vector2f initialPos, sf::Color color) {
     // Store in players map
     players[playerId] = manager;
 
+    std::cout << "Added player with ID: " << playerId << std::endl;
     return playerId;
 }
 
@@ -93,8 +93,17 @@ void GameServer::update(float deltaTime) {
 
 void GameServer::handlePlayerInput(int playerId, const PlayerInput& input) {
     auto it = players.find(playerId);
-    if (it == players.end()) return;
+    if (it == players.end()) {
+        // Player not found - could be a new connection, create player
+        std::cout << "Unknown player ID: " << playerId << ", creating new player" << std::endl;
+        sf::Vector2f spawnPos = planets[0]->getPosition() +
+            sf::Vector2f(0, -(planets[0]->getRadius() + GameConstants::ROCKET_SIZE));
+        players[playerId] = new VehicleManager(spawnPos, planets);
+        simulator.addVehicleManager(players[playerId]);
+        return;
+    }
 
+    // Apply input to the correct player's vehicle manager
     VehicleManager* manager = it->second;
 
     // Apply input to the vehicle

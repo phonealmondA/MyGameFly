@@ -45,16 +45,16 @@ sf::Packet& operator>>(sf::Packet& packet, PlanetState& state) {
 
 // Implement GameState serialization
 sf::Packet& operator<<(sf::Packet& packet, const GameState& state) {
-    packet << state.sequenceNumber << state.timestamp;
+    packet << static_cast<uint32_t>(state.sequenceNumber) << state.timestamp;
 
     // Serialize rockets
-    packet << static_cast<sf::Uint32>(state.rockets.size());
+    packet << static_cast<uint32_t>(state.rockets.size());
     for (const auto& rocket : state.rockets) {
         packet << rocket;
     }
 
     // Serialize planets
-    packet << static_cast<sf::Uint32>(state.planets.size());
+    packet << static_cast<uint32_t>(state.planets.size());
     for (const auto& planet : state.planets) {
         packet << planet;
     }
@@ -63,21 +63,23 @@ sf::Packet& operator<<(sf::Packet& packet, const GameState& state) {
 }
 
 sf::Packet& operator>>(sf::Packet& packet, GameState& state) {
-    packet >> state.sequenceNumber >> state.timestamp;
+    uint32_t seqNum;
+    packet >> seqNum >> state.timestamp;
+    state.sequenceNumber = seqNum;
 
     // Deserialize rockets
-    sf::Uint32 rocketCount;
+    uint32_t rocketCount;
     packet >> rocketCount;
     state.rockets.resize(rocketCount);
-    for (sf::Uint32 i = 0; i < rocketCount; ++i) {
+    for (uint32_t i = 0; i < rocketCount; ++i) {
         packet >> state.rockets[i];
     }
 
     // Deserialize planets
-    sf::Uint32 planetCount;
+    uint32_t planetCount;
     packet >> planetCount;
     state.planets.resize(planetCount);
-    for (sf::Uint32 i = 0; i < planetCount; ++i) {
+    for (uint32_t i = 0; i < planetCount; ++i) {
         packet >> state.planets[i];
     }
 
