@@ -181,18 +181,21 @@ int main()
 
     // Clock for tracking time between frames
     sf::Clock clock;
-
     // Create game objects - main planet in the center (pinned in place)
-    Planet planet(sf::Vector2f(GameConstants::MAIN_PLANET_X, GameConstants::MAIN_PLANET_Y), GameConstants::MAIN_PLANET_RADIUS, GameConstants::MAIN_PLANET_MASS, sf::Color::Blue);
+    Planet planet(sf::Vector2f(GameConstants::MAIN_PLANET_X, GameConstants::MAIN_PLANET_Y),
+        GameConstants::MAIN_PLANET_RADIUS, GameConstants::MAIN_PLANET_MASS, sf::Color::Blue);
     // Set zero velocity to ensure it stays in place
     planet.setVelocity(sf::Vector2f(0.f, 0.f));
 
-    // Create a second planet - position it much farther away
-    Planet planet2(sf::Vector2f(GameConstants::SECONDARY_PLANET_X, GameConstants::SECONDARY_PLANET_Y), GameConstants::SECONDARY_PLANET_RADIUS, GameConstants::SECONDARY_PLANET_MASS, sf::Color::Green);
-    // Calculate proper orbital velocity for circular orbit
-    float distance = 10000.0f; // New distance between planets (800-400)
+    // Create a second planet - position it using the calculated position
+    Planet planet2(sf::Vector2f(GameConstants::SECONDARY_PLANET_X, GameConstants::SECONDARY_PLANET_Y),
+        GameConstants::SECONDARY_PLANET_RADIUS, GameConstants::SECONDARY_PLANET_MASS, sf::Color::Green);
+    // Set the pre-calculated orbital velocity for a circular orbit
+    planet2.setVelocity(sf::Vector2f(0.f, GameConstants::SECONDARY_PLANET_ORBITAL_VELOCITY));
+    // Calculate proper orbital velocity for circular orbit using the constant distance
     // Using Kepler's laws: v = sqrt(G*M/r)
-    float orbitSpeed = std::sqrt(G * planet.getMass() / distance);
+    float orbitSpeed = std::sqrt(GameConstants::G * planet.getMass() / GameConstants::PLANET_ORBIT_DISTANCE);
+
     // Setting velocity perpendicular to the radial direction
     planet2.setVelocity(sf::Vector2f(0.f, orbitSpeed));
 
@@ -601,7 +604,8 @@ int main()
             orbitInfoPanel.setText(ss.str());
         }
 
-        // Add thrust metrics panel for rocket
+        // 4. Thrust metrics panel content (prepare the content but don't draw yet)
+        TextPanel thrustMetricsPanel(font, 12, sf::Vector2f(10, 530), sf::Vector2f(250, 80));
         if (vehicleManager.getActiveVehicleType() == VehicleType::ROCKET) {
             Rocket* rocket = vehicleManager.getRocket();
             sf::Vector2f rocketPos = rocket->getPosition();
@@ -649,8 +653,7 @@ int main()
                 // Net acceleration along thrust direction
                 float netAccel = (currentThrust - gravityComponent) / rocket->getMass();
 
-                // Create a simple panel for thrust metrics
-                TextPanel thrustMetricsPanel(font, 12, sf::Vector2f(10, 530), sf::Vector2f(250, 80));
+                // Set the text content
                 std::stringstream ss;
                 ss << "THRUST METRICS\n"
                     << "Thrust Level: " << std::fixed << std::setprecision(2) << rocket->getThrustLevel() * 100.0f << "%\n"
@@ -660,18 +663,24 @@ int main()
                     << std::sqrt(2.0f * G * closestPlanet->getMass() / dist) << " units/s";
 
                 thrustMetricsPanel.setText(ss.str());
-                thrustMetricsPanel.draw(window);
+            }
+            else {
+                thrustMetricsPanel.setText("THRUST METRICS\nNo planet in range");
             }
         }
+        else {
+            thrustMetricsPanel.setText("THRUST METRICS\nNot available in car mode");
+        }
 
-        // Switch to UI view for text panels
+        // Now switch to UI view for drawing all panels
         window.setView(uiView);
 
-        // Draw info panels
+        // Draw all panels
         rocketInfoPanel.draw(window);
         planetInfoPanel.draw(window);
         orbitInfoPanel.draw(window);
         controlsPanel.draw(window);
+        thrustMetricsPanel.draw(window);
 
         // Update and draw buttons
         sf::Vector2f mousePos = window.mapPixelToCoords(
