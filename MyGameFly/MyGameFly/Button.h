@@ -6,7 +6,7 @@
 class Button {
 private:
     sf::RectangleShape shape;
-    // sf::Text text;  // Comment out for now
+    sf::Text text;
     std::function<void()> callback;
     bool isHovered;
 

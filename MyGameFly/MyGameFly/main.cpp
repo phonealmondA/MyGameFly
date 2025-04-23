@@ -19,6 +19,13 @@
 #include <iomanip>
 #include <limits>
 #include <iostream> // For std::cerr
+enum class GameStateA {
+    MENU,
+    JOIN_MENU,
+    SINGLE_PLAYER,
+    MULTIPLAYER_HOST,
+    MULTIPLAYER_CLIENT
+};
 
 #ifdef _DEBUG
 #pragma comment(lib, "sfml-graphics-d.lib")
@@ -154,39 +161,10 @@ bool parseCommandLine(int argc, char* argv[]) {
 
 int main(int argc, char* argv[])
 {
-    // Parse command line arguments for multiplayer mode
-    bool multiplayer = parseCommandLine(argc, argv);
+    // Initialize SFML window
+    sf::RenderWindow window(sf::VideoMode({ 1280, 720 }), "Katie's Flight Sim");
 
-    // Add this code here
-    if (multiplayer) {
-        networkManager.enableRobustNetworking();
-
-        // Set a reasonable latency compensation time for client
-        if (!isHost && gameClient) {
-            gameClient->setLatencyCompensation(0.2f); // 200ms interpolation window
-        }
-
-        std::cout << "Network connection established. Running in "
-            << (isHost ? "server" : "client") << " mode." << std::endl;
-    }
-
-
-    // Create a window with increased size 1280x720
-    std::string windowTitle = "Katie's Space Program";
-    if (multiplayer) {
-        windowTitle += isHost ? " (Server)" : " (Client)";
-    }
-    sf::RenderWindow window(sf::VideoMode({ 1280, 720 }), windowTitle);
-
-    // Create a view for the camera with initial zoom level
-    sf::View gameView(sf::Vector2f(640.f, 360.f), sf::Vector2f(1280.f, 720.f));
-    float zoomLevel = 1.0f;
-    float targetZoom = 1.0f;
-    const float minZoom = 1.0f;      // Maximum zoom in (closest to planet)
-    const float maxZoom = 1000.0f;   // Maximum zoom out (increased for larger system)
-    const float zoomSpeed = 1.0f;    // Zoom speed factor
-
-    // Load a font for the buttons
+    // Load font
     sf::Font font;
     bool fontLoaded = false;
 
@@ -222,8 +200,248 @@ int main(int argc, char* argv[])
         // You might consider bundling a fallback font with your application
     }
 
-    // Create UI view (fixed, doesn't zoom or move with game world)
+    // Game state tracking
+    GameStateA currentState = GameStateA::MENU;
+
+    // For text input in join screen
+    std::string inputAddress = "";
+    std::string inputPort = "5000";
+    bool focusAddress = true;  // Which input field has focus
+
+    // Menu buttons (main menu)
+    Button startButton(sf::Vector2f(640.f, 300.f), sf::Vector2f(200.f, 50.f), "Start", font,
+        [&currentState]() { currentState = GameStateA::SINGLE_PLAYER; });
+
+    Button hostButton(sf::Vector2f(640.f, 370.f), sf::Vector2f(200.f, 50.f), "Host", font,
+        [&currentState]() { currentState = GameStateA::MULTIPLAYER_HOST; });
+
+    Button joinButton(sf::Vector2f(640.f, 440.f), sf::Vector2f(200.f, 50.f), "Join", font,
+        [&currentState]() { currentState = GameStateA::JOIN_MENU; });
+
+    // Join menu buttons
+    Button connectButton(sf::Vector2f(640.f, 440.f), sf::Vector2f(200.f, 50.f), "Connect", font,
+        [&currentState]() { currentState = GameStateA::MULTIPLAYER_CLIENT; });
+
+    Button backButton(sf::Vector2f(640.f, 510.f), sf::Vector2f(200.f, 50.f), "Back", font,
+        [&currentState]() { currentState = GameStateA::MENU; });
+
+    // Title text
+    sf::Text titleText(font);
+    titleText.setString("Katie's Flight Sim");
+    titleText.setCharacterSize(48);
+    titleText.setFillColor(sf::Color::White);
+    titleText.setPosition(sf::Vector2f(640.f - titleText.getLocalBounds().size.x / 2, 150.f));
+
+    // Address input display
+    sf::Text addressLabel(font);
+    addressLabel.setString("Server Address:");
+    addressLabel.setCharacterSize(20);
+    addressLabel.setFillColor(sf::Color::White);
+    addressLabel.setPosition(sf::Vector2f(520.f, 300.f));
+
+    sf::RectangleShape addressInput;
+    addressInput.setSize(sf::Vector2f(300.f, 30.f));
+    addressInput.setFillColor(sf::Color(50, 50, 50));
+    addressInput.setOutlineColor(sf::Color::White);
+    addressInput.setOutlineThickness(2.f);
+    addressInput.setPosition(sf::Vector2f(520.f, 330.f));
+
+    sf::Text addressText(font);
+    addressText.setString(inputAddress);
+    addressText.setCharacterSize(18);
+    addressText.setFillColor(sf::Color::White);
+    addressText.setPosition(sf::Vector2f(525.f, 335.f));
+
+    // Port input display
+    sf::Text portLabel(font);
+    portLabel.setString("Port:");
+    portLabel.setCharacterSize(20);
+    portLabel.setFillColor(sf::Color::White);
+    portLabel.setPosition(sf::Vector2f(520.f, 370.f));
+
+    sf::RectangleShape portInput;
+    portInput.setSize(sf::Vector2f(150.f, 30.f));
+    portInput.setFillColor(sf::Color(50, 50, 50));
+    portInput.setOutlineColor(sf::Color::White);
+    portInput.setOutlineThickness(2.f);
+    portInput.setPosition(sf::Vector2f(520.f, 400.f));
+
+    sf::Text portText(font);
+    portText.setString(inputPort);
+    portText.setCharacterSize(18);
+    portText.setFillColor(sf::Color::White);
+    portText.setPosition(sf::Vector2f(525.f, 405.f));
+
+    // Clock for tracking time between frames
+    sf::Clock clock;
+
+    // Main menu loop
+    while (window.isOpen() && (currentState == GameStateA::MENU || currentState == GameStateA::JOIN_MENU))
+    {
+        // Calculate delta time
+        float deltaTime = std::min(clock.restart().asSeconds(), 0.1f);
+
+        // Check for events
+        if (std::optional<sf::Event> event = window.pollEvent())
+        {
+            // Close the window when the close button is clicked
+            if (event->is<sf::Event::Closed>())
+                window.close();
+
+            // Handle key events
+            if (event->is<sf::Event::KeyPressed>())
+            {
+                const auto* keyEvent = event->getIf<sf::Event::KeyPressed>();
+                if (keyEvent)
+                {
+                    if (keyEvent->code == sf::Keyboard::Key::Escape)
+                    {
+                        if (currentState == GameStateA::JOIN_MENU)
+                            currentState = GameStateA::MENU;
+                        else if (currentState != GameStateA::MENU)
+                            currentState = GameStateA::MENU;
+                        else
+                            window.close();
+                    }
+                    // Simple keyboard menu controls - no text or buttons needed
+                    else if (keyEvent->code == sf::Keyboard::Key::Q && currentState == GameStateA::MENU)
+                    {
+                        // Q starts single player
+                        currentState = GameStateA::SINGLE_PLAYER;
+                    }
+                    else if (keyEvent->code == sf::Keyboard::Key::H && currentState == GameStateA::MENU)
+                    {
+                        // H starts multiplayer host
+                        currentState = GameStateA::MULTIPLAYER_HOST;
+                    }
+                    else if (keyEvent->code == sf::Keyboard::Key::J && currentState == GameStateA::MENU)
+                    {
+                        // J opens join menu
+                        currentState = GameStateA::JOIN_MENU;
+                    }
+                    else if (keyEvent->code == sf::Keyboard::Key::C && currentState == GameStateA::JOIN_MENU)
+                    {
+                        // C connects (from join menu)
+                        currentState = GameStateA::MULTIPLAYER_CLIENT;
+                    }
+                }
+            }
+        }
+
+        // Clear the window
+        window.clear(sf::Color(20, 20, 50));  // Dark blue background
+
+        // Draw colored rectangles as visual menu indicators (no text)
+        if (currentState == GameStateA::MENU)
+        {
+            // Draw three simple rectangles for the three menu options
+            sf::RectangleShape startOption;
+            startOption.setSize(sf::Vector2f(200.f, 50.f));
+            startOption.setPosition(sf::Vector2f(640.f - 100.f, 300.f));
+            startOption.setFillColor(sf::Color(100, 100, 100, 200));
+
+            sf::RectangleShape hostOption;
+            hostOption.setSize(sf::Vector2f(200.f, 50.f));
+            hostOption.setPosition(sf::Vector2f(640.f - 100.f, 370.f));
+            hostOption.setFillColor(sf::Color(100, 100, 100, 200));
+
+            sf::RectangleShape joinOption;
+            joinOption.setSize(sf::Vector2f(200.f, 50.f));
+            joinOption.setPosition(sf::Vector2f(640.f - 100.f, 440.f));
+            joinOption.setFillColor(sf::Color(100, 100, 100, 200));
+
+            window.draw(startOption);
+            window.draw(hostOption);
+            window.draw(joinOption);
+        }
+        else if (currentState == GameStateA::JOIN_MENU)
+        {
+            // Draw two simple rectangles for the join menu
+            sf::RectangleShape connectOption;
+            connectOption.setSize(sf::Vector2f(200.f, 50.f));
+            connectOption.setPosition(sf::Vector2f(640.f - 100.f, 340.f));
+            connectOption.setFillColor(sf::Color(100, 100, 100, 200));
+
+            sf::RectangleShape backOption;
+            backOption.setSize(sf::Vector2f(200.f, 50.f));
+            backOption.setPosition(sf::Vector2f(640.f - 100.f, 410.f));
+            backOption.setFillColor(sf::Color(100, 100, 100, 200));
+
+            window.draw(connectOption);
+            window.draw(backOption);
+        }
+
+        // Display the window
+        window.display();
+    }
+    // Handle state transitions
+    if (currentState == GameStateA::SINGLE_PLAYER)
+    {
+        isMultiplayer = false;
+    }
+    else if (currentState == GameStateA::MULTIPLAYER_HOST)
+    {
+        isMultiplayer = true;
+        isHost = true;
+        networkManager.hostGame(5000);
+    }
+    else if (currentState == GameStateA::MULTIPLAYER_CLIENT)
+    {
+        isMultiplayer = true;
+        isHost = false;
+
+        // Parse address and port// Parse address and port
+        sf::IpAddress serverAddress = sf::IpAddress::LocalHost; // Initialize with a valid value
+
+        if (!inputAddress.empty()) {
+            // In SFML 3.0, we need to use resolve
+            if (auto address = sf::IpAddress::resolve(inputAddress)) {
+                serverAddress = *address;
+            }
+            else {
+                std::cerr << "Invalid IP address format" << std::endl;
+                // We already initialized with LocalHost, so no need to do it again
+            }
+        }
+
+        unsigned short port = static_cast<unsigned short>(std::stoi(inputPort));
+
+        networkManager.joinGame(serverAddress, port);
+    }
+    else
+    {
+        // If we got here, the window was closed from the menu
+        return 0;
+    }
+
+    // Configure network
+    if (isMultiplayer) {
+        networkManager.enableRobustNetworking();
+
+        // Set a reasonable latency compensation time for client
+        if (!isHost && gameClient) {
+            gameClient->setLatencyCompensation(0.2f); // 200ms interpolation window
+        }
+
+        std::cout << "Network connection established. Running in "
+            << (isHost ? "server" : "client") << " mode." << std::endl;
+    }
+
+
+    // Create a window with increased size 1280x720
+    std::string windowTitle = "Katie's Space Program";
+    if (isMultiplayer) {
+        windowTitle += isHost ? " (Server)" : " (Client)";
+    }
+
+    // Update UI view for game
+    sf::View gameView(sf::Vector2f(640.f, 360.f), sf::Vector2f(1280.f, 720.f));
     sf::View uiView(sf::Vector2f(640.f, 360.f), sf::Vector2f(1280.f, 720.f));
+    float zoomLevel = 1.0f;
+    float targetZoom = 1.0f;
+    const float minZoom = 1.0f;      // Maximum zoom in (closest to planet)
+    const float maxZoom = 1000.0f;   // Maximum zoom out (increased for larger system)
+    const float zoomSpeed = 1.0f;    // Zoom speed factor
 
     // Create text panels for displaying information
     TextPanel rocketInfoPanel(font, 12, sf::Vector2f(10, 10), sf::Vector2f(250, 150));
@@ -234,7 +452,7 @@ int main(int argc, char* argv[])
 
     // Set controls info - add multiplayer status if applicable
     std::string controlsText;
-    if (multiplayer && !isHost) {
+    if (isMultiplayer && !isHost) {
         // Client controls - WAD only
         controlsText =
             "CONTROLS:\n"
@@ -257,7 +475,7 @@ int main(int argc, char* argv[])
             "C: Focus planet 2";
     }
 
-    if (multiplayer) {
+    if (isMultiplayer) {
         controlsText += "\n\nMULTIPLAYER MODE: ";
         controlsText += isHost ? "SERVER" : "CLIENT";
     }
@@ -270,15 +488,12 @@ int main(int argc, char* argv[])
     // Create buttons
     std::vector<Button> buttons;
 
-    // Clock for tracking time between frames
-    sf::Clock clock;
-
     // Reference to the active vehicle manager (either from server/client or local)
     VehicleManager* activeVehicleManager = nullptr;
     std::vector<Planet*> planets;
 
     // Setup game objects based on multiplayer mode
-    if (multiplayer) {
+    if (isMultiplayer) {
         if (isHost) {
             // Server creates and manages the game state
             gameServer = new GameServer();
@@ -379,7 +594,7 @@ int main(int argc, char* argv[])
         float deltaTime = std::min(clock.restart().asSeconds(), 0.1f);
 
         // Update network state for multiplayer
-        if (multiplayer) {
+        if (isMultiplayer) {
             // Update network manager to handle connections
             networkManager.update();
 
@@ -437,11 +652,11 @@ int main(int argc, char* argv[])
 
             // Find the multiplayerPanel in your code that displays multiplayer status
             // and set its text to networkStatusSS.str()
-            if (multiplayer) {
+            if (isMultiplayer) {
                 multiplayerPanel.setText(networkStatusSS.str());
             }
         }
-            
+
         // Check for events
         if (std::optional<sf::Event> event = window.pollEvent())
         {
@@ -503,7 +718,8 @@ int main(int argc, char* argv[])
                 }
             }
 
-            // Handle key eventsif (event->is<sf::Event::KeyPressed>())
+            // Handle key events
+            if (event->is<sf::Event::KeyPressed>())
             {
                 const auto* keyEvent = event->getIf<sf::Event::KeyPressed>();
                 if (keyEvent)
@@ -517,7 +733,7 @@ int main(int argc, char* argv[])
                         planetGravity = !planetGravity;
                         gravitySimulator.setSimulatePlanetGravity(planetGravity);
                     }
-                    else if (keyEvent->code == sf::Keyboard::Key::L && !lKeyPressed && !multiplayer)
+                    else if (keyEvent->code == sf::Keyboard::Key::L && !lKeyPressed && !isMultiplayer)
                     {
                         // Transform between rocket and car (single player only)
                         lKeyPressed = true;
@@ -548,7 +764,7 @@ int main(int argc, char* argv[])
         }
 
         // In multiplayer client mode, don't handle input here as it's sent to the server
-        if (!multiplayer) {
+        if (!isMultiplayer) {
             // Single player - direct input handling
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1))
                 activeVehicleManager->getRocket()->setThrustLevel(0.1f);
@@ -653,7 +869,7 @@ int main(int argc, char* argv[])
         }
 
         // Update simulation if not in multiplayer client mode
-        if (!multiplayer || isHost) {
+        if (!isMultiplayer || isHost) {
             gravitySimulator.update(deltaTime);
             for (auto planet : planets) {
                 planet->update(deltaTime);
@@ -727,7 +943,7 @@ int main(int argc, char* argv[])
         // Draw the active vehicle
         activeVehicleManager->drawWithConstantSize(window, zoomLevel);
         // Draw remote vehicles in multiplayer mode
-        if (multiplayer) {
+        if (isMultiplayer) {
             if (isHost) {
                 // Draw all player vehicles from the server
                 for (const auto& pair : gameServer->getPlayers()) {
@@ -959,7 +1175,7 @@ int main(int argc, char* argv[])
 
         // Add multiplayer info panel
         TextPanel multiplayerPanel(font, 12, sf::Vector2f(10, 620), sf::Vector2f(250, 90));
-        if (multiplayer) {
+        if (isMultiplayer) {
             std::stringstream ss;
             ss << "MULTIPLAYER STATUS\n";
             ss << "Mode: " << (isHost ? "Host" : "Client") << "\n";
@@ -987,7 +1203,7 @@ int main(int argc, char* argv[])
         orbitInfoPanel.draw(window);
         controlsPanel.draw(window);
         thrustMetricsPanel.draw(window);
-        if (multiplayer) {
+        if (isMultiplayer) {
             multiplayerPanel.draw(window);
         }
 
@@ -1004,7 +1220,7 @@ int main(int argc, char* argv[])
    }
 
    // Cleanup
-   if (!multiplayer) {
+   if (!isMultiplayer) {
        // In single player mode, clean up our own objects
        delete activeVehicleManager;
        for (auto planet : planets) {

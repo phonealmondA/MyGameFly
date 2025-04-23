@@ -3,7 +3,7 @@
 Button::Button(const sf::Vector2f& position, const sf::Vector2f& size,
     const std::string& buttonText, const sf::Font& font,
     std::function<void()> clickCallback)
-    : callback(clickCallback), isHovered(false)
+    : callback(clickCallback), isHovered(false), text(font)
 {
     // Set up shape
     shape.setPosition(position);
@@ -12,9 +12,7 @@ Button::Button(const sf::Vector2f& position, const sf::Vector2f& size,
     shape.setOutlineColor(sf::Color::White);
     shape.setOutlineThickness(1.0f);
 
-    // In SFML 3.0, we'll need to handle text differently
-    // For now, skip text rendering - just use colored buttons
-    // We can add text back once the basic UI is working
+    // We're not using text at all, just initialize it but don't render it
 }
 
 void Button::update(const sf::Vector2f& mousePosition)
@@ -39,8 +37,7 @@ void Button::handleClick()
 void Button::draw(sf::RenderWindow& window)
 {
     window.draw(shape);
-    // Skip text drawing for now
-    // window.draw(text);
+    // Don't draw text
 }
 
 bool Button::contains(const sf::Vector2f& point) const

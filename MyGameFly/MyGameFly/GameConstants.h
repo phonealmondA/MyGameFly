@@ -59,7 +59,7 @@ namespace GameConstants {
     constexpr float CAR_BODY_HEIGHT = 15.0f;  // Height of car body
 
     // Engine parameters - scaled with gravitational constant
-    constexpr float BASE_THRUST_MULTIPLIER = 100000000.0f;
+    constexpr float BASE_THRUST_MULTIPLIER = 1.0f;
     constexpr float ENGINE_THRUST_POWER = G * BASE_THRUST_MULTIPLIER;
 
     // Vehicle transformation parameters
